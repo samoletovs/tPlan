@@ -24,12 +24,15 @@ export default function WorkoutPage() {
   const [completed, setCompleted] = useState(false);
   const startTimeRef = useRef<number>(0);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     loadWorkout();
   }, [id]);
 
   async function loadWorkout() {
     setLoading(true);
+    setError(null);
     try {
       if (id) {
         const workouts = await getWorkouts();
@@ -41,8 +44,8 @@ export default function WorkoutPage() {
         const todayWorkout = workouts.find(w => w.date === today && !w.completed);
         if (todayWorkout) setWorkout(todayWorkout);
       }
-    } catch {
-      // No workout found
+    } catch (err: any) {
+      setError(err.message || 'Failed to load workouts');
     } finally {
       setLoading(false);
     }
@@ -50,12 +53,17 @@ export default function WorkoutPage() {
 
   async function handleGenerate() {
     setGenerating(true);
+    setError(null);
     try {
       const today = new Date().toISOString().split('T')[0];
       const w = await generateWorkout(today);
-      setWorkout(w);
-    } catch {
-      // Generation failed
+      if (w.rest) {
+        setError(`${w.message || 'Rest day — no workouts scheduled'}`);
+      } else {
+        setWorkout(w);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate workout');
     } finally {
       setGenerating(false);
     }
@@ -124,6 +132,11 @@ export default function WorkoutPage() {
         <div className="empty-state">
           <p>{t('workout.noWorkout')}</p>
           <p style={{ fontSize: '0.875rem' }}>{t('workout.generatePrompt')}</p>
+          {error && (
+            <div style={{ color: '#ef4444', fontSize: '0.875rem', margin: '8px 0', padding: '8px 12px', background: '#fef2f2', borderRadius: 8 }}>
+              {error}
+            </div>
+          )}
           <button
             className="btn btn-primary"
             onClick={handleGenerate}
