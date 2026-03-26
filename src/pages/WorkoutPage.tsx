@@ -56,7 +56,7 @@ export default function WorkoutPage() {
     setError(null);
     try {
       const today = new Date().toISOString().split('T')[0];
-      const w = await generateWorkout(today);
+      const w: any = await generateWorkout(today);
       if (w.rest) {
         setError(`${w.message || 'Rest day — no workouts scheduled'}`);
       } else {
