@@ -1,9 +1,16 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 
 export default function Landing() {
   const { t } = useTranslation();
   const { login, principal, loading } = useAuth();
+
+  useEffect(() => {
+    if (principal) {
+      window.location.href = '/app';
+    }
+  }, [principal]);
 
   if (loading) {
     return (
@@ -14,7 +21,6 @@ export default function Landing() {
   }
 
   if (principal) {
-    window.location.href = '/app';
     return null;
   }
 

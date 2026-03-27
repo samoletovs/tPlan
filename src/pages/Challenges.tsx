@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Challenge } from '../types';
 
@@ -6,12 +6,7 @@ export default function Challenges() {
   const { t, i18n } = useTranslation();
   const locale = i18n.language as 'en' | 'ru' | 'lv' | 'es';
   const [challenges] = useState<Challenge[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Challenges feature not yet implemented with Table Storage
-    setLoading(false);
-  }, []);
+  const loading = false;
 
   if (loading) {
     return (

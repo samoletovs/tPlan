@@ -28,6 +28,7 @@ export default function WorkoutPage() {
 
   useEffect(() => {
     loadWorkout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function loadWorkout() {
@@ -86,6 +87,7 @@ export default function WorkoutPage() {
     } else {
       advanceStep();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [current, workout]);
 
   function advanceStep() {
