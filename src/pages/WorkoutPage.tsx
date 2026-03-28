@@ -81,12 +81,12 @@ export default function WorkoutPage() {
     }
   }
 
-  async function handleGenerate() {
+  async function handleGenerate(session?: 'morning' | 'evening') {
     setGenerating(true);
     setError(null);
     try {
       const today = new Date().toISOString().split('T')[0];
-      const w = await generateWorkout(today);
+      const w = await generateWorkout(today, session);
       if ('rest' in w && (w as Record<string, unknown>).rest) {
         setError(`${(w as Record<string, unknown>).message || t('workout.restDay')}`);
       } else {
@@ -98,6 +98,18 @@ export default function WorkoutPage() {
     } finally {
       setGenerating(false);
     }
+  }
+
+  function handleCancel() {
+    setWorkout(null);
+    setStarted(false);
+    setCompleted(false);
+    setCurrent(0);
+    setResults([]);
+    setResting(false);
+    setElapsed(0);
+    if (elapsedRef.current) clearInterval(elapsedRef.current);
+    loadWorkout();
   }
 
   function handleStart() {
@@ -198,7 +210,7 @@ export default function WorkoutPage() {
             </div>
             <button
               className="btn btn-primary"
-              onClick={handleGenerate}
+              onClick={() => handleGenerate('morning')}
               disabled={generating}
               aria-label={t('workout.generateMorning')}
             >
@@ -238,7 +250,7 @@ export default function WorkoutPage() {
             </div>
             <button
               className="btn btn-secondary"
-              onClick={handleGenerate}
+              onClick={() => handleGenerate('evening')}
               disabled={generating}
               aria-label={t('workout.generateEvening')}
             >
@@ -299,6 +311,9 @@ export default function WorkoutPage() {
         <button className="btn btn-primary" onClick={handleStart} aria-label={t('workout.start')}>
           {t('workout.start')}
         </button>
+        <button className="btn btn-ghost" onClick={handleCancel} style={{ marginTop: 8 }} aria-label={t('common.cancel')}>
+          {t('common.cancel')}
+        </button>
       </div>
     );
   }
@@ -310,11 +325,19 @@ export default function WorkoutPage() {
 
   return (
     <div>
-      {/* Elapsed timer */}
+      {/* Elapsed timer + cancel */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         marginBottom: 12, fontSize: '0.8125rem', color: 'var(--text-tertiary)',
       }}>
+        <button
+          className="btn-ghost"
+          onClick={handleCancel}
+          aria-label={t('common.cancel')}
+          style={{ padding: '4px 8px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font)' }}
+        >
+          ← {t('common.cancel')}
+        </button>
         <span>{workout.title}</span>
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>
           {'\u23F1'} {String(elapsedMin).padStart(2, '0')}:{String(elapsedSec).padStart(2, '0')}

@@ -38,8 +38,9 @@ app.http('generateWorkout', {
     const userId = getUserId(req.headers);
     if (!userId) return { status: 401, jsonBody: { error: 'Unauthorized' } };
 
-    const body = await req.json() as { date: string };
+    const body = await req.json() as { date: string; session?: 'morning' | 'evening' };
     const date = body.date;
+    const session = body.session; // optional: 'morning' or 'evening'
     const dayIdx = new Date(date).getDay();
     const dayKey = DAY_KEYS[dayIdx];
 
@@ -69,7 +70,13 @@ app.http('generateWorkout', {
       return { status: 400, jsonBody: { error: 'No schedule configured. Set up your weekly plan first.' } };
     }
 
-    const todaySlots = schedule.weeklySchedule[dayKey] || [];
+    let todaySlots = schedule.weeklySchedule[dayKey] || [];
+    // Filter by session if specified
+    if (session === 'morning') {
+      todaySlots = todaySlots.filter((s: any) => s.slot !== 'evening');
+    } else if (session === 'evening') {
+      todaySlots = todaySlots.filter((s: any) => s.slot === 'evening');
+    }
     if (todaySlots.length === 0) {
       return { status: 200, jsonBody: { rest: true, date, day: DAY_NAMES[dayIdx], message: 'Rest day — no workouts scheduled.' } };
     }
