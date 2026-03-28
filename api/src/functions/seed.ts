@@ -95,6 +95,37 @@ app.http('seedUser', {
       }),
     }, 'Replace');
 
-    return { jsonBody: { message: 'Seeded: Convict Conditioning + Dumbbell Gymnastics', seeded: true } };
+    // Remap any migrated logs from 'migrate-pending' to this user
+    const remapped = await remapMigratedLogs(userId);
+
+    return { jsonBody: { message: 'Seeded: Convict Conditioning + Dumbbell Gymnastics', seeded: true, remappedLogs: remapped } };
   },
 });
+
+// Remap migrated logs from 'migrate-pending' to real userId
+async function remapMigratedLogs(userId: string): Promise<number> {
+  const logsTable = getTable('tplanLogs');
+  let count = 0;
+  try {
+    const entities: any[] = [];
+    for await (const entity of logsTable.listEntities({
+      queryOptions: { filter: `PartitionKey eq 'migrate-pending'` },
+    })) {
+      entities.push(entity);
+    }
+    for (const entity of entities) {
+      const data = JSON.parse(entity.data as string || '{}');
+      data.userId = userId;
+      // Create new entity under real userId
+      await logsTable.upsertEntity({
+        partitionKey: userId,
+        rowKey: entity.rowKey as string,
+        data: JSON.stringify(data),
+      }, 'Replace');
+      // Delete old entity
+      await logsTable.deleteEntity('migrate-pending', entity.rowKey as string);
+      count++;
+    }
+  } catch { /* non-critical */ }
+  return count;
+}
