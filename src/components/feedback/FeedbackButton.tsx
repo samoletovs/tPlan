@@ -1,27 +1,33 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { submitFeedback } from '../../services/api';
+
+const REPO_OWNER = 'samoletovs';
+const REPO_NAME = 'tPlan';
+
+const typeConfig = {
+  bug: { emoji: '🐛', label: 'Bug Report', ghLabel: 'bug' },
+  feature: { emoji: '💡', label: 'Feature Idea', ghLabel: 'enhancement' },
+  other: { emoji: '📝', label: 'Improvement', ghLabel: 'enhancement' },
+} as const;
 
 export default function FeedbackButton() {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [type, setType] = useState('bug');
+  const [type, setType] = useState<keyof typeof typeConfig>('bug');
   const [description, setDescription] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (!description.trim()) return;
-    setSubmitting(true);
-    try {
-      await submitFeedback({ type, description });
-      setSubmitted(true);
-      setTimeout(() => { setOpen(false); setSubmitted(false); setDescription(''); }, 2000);
-    } catch {
-      // Failed
-    } finally {
-      setSubmitting(false);
-    }
+    const info = typeConfig[type];
+    const title = `${info.emoji} ${info.label}: ${description.slice(0, 80)}`;
+    const body = `## ${info.label}\n\n${description}\n\n---\n*Submitted via tPlan in-app feedback*`;
+    window.open(
+      `https://github.com/${REPO_OWNER}/${REPO_NAME}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=${encodeURIComponent(info.ghLabel)}`,
+      '_blank',
+    );
+    setSubmitted(true);
+    setTimeout(() => { setOpen(false); setSubmitted(false); setDescription(''); }, 2000);
   }
 
   if (!open) {
@@ -79,9 +85,9 @@ export default function FeedbackButton() {
           <button
             className="btn btn-primary"
             onClick={handleSubmit}
-            disabled={submitting || !description.trim()}
+            disabled={!description.trim()}
           >
-            {submitting ? t('common.loading') : t('feedback.submit')}
+            {t('feedback.submit')}
           </button>
         </>
       )}
