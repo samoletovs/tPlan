@@ -159,41 +159,91 @@ export default function WorkoutPage() {
   }
 
   if (!workout) {
+    // Group slots into morning (A/B) and evening sessions
+    const morningSlots = todaySlots.filter(s => s.slot !== 'evening');
+    const eveningSlots = todaySlots.filter(s => s.slot === 'evening');
+
     return (
       <div>
         <h2 style={{ marginBottom: 16 }}>{t('workout.title')}</h2>
 
-        {/* Today's scheduled programs */}
-        {todaySlots.length > 0 && (
+        {/* Morning session */}
+        {morningSlots.length > 0 && (
           <div style={{ marginBottom: 16 }}>
-            <label className="label">{t('workout.todaySchedule')}</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {todaySlots.map((slot, i) => {
+            <label className="label">{t('workout.morningSession')}</label>
+            <div className="card" style={{ marginBottom: 8 }}>
+              {morningSlots.map((slot, i) => {
                 const program = programs.find(p => p.id === slot.programId);
                 return (
-                  <div key={i} className="card" style={{ marginBottom: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                          {program?.name ?? slot.programId}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                          {t(`schedule.slot.${slot.slot}`, { defaultValue: `Day ${slot.slot}` })}
-                        </div>
+                  <div key={i} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: i > 0 ? '8px 0 0' : undefined,
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                        {program?.name ?? slot.programId}
                       </div>
-                      <span style={{
-                        display: 'inline-block', padding: '2px 8px',
-                        borderRadius: 4, fontSize: '0.6875rem', fontWeight: 500,
-                        background: 'var(--accent-bg)', border: '1px solid var(--accent)',
-                        color: 'var(--accent)',
-                      }}>
-                        {slot.slot}
-                      </span>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                        {t(`schedule.slot.${slot.slot}`, { defaultValue: `Day ${slot.slot}` })}
+                      </div>
                     </div>
+                    <span style={{
+                      display: 'inline-block', padding: '2px 8px', borderRadius: 4,
+                      fontSize: '0.6875rem', fontWeight: 500,
+                      background: 'var(--accent-bg)', border: '1px solid var(--accent)', color: 'var(--accent)',
+                    }}>{slot.slot}</span>
                   </div>
                 );
               })}
             </div>
+            <button
+              className="btn btn-primary"
+              onClick={handleGenerate}
+              disabled={generating}
+              aria-label={t('workout.generateMorning')}
+            >
+              {generating ? t('workout.generating') : t('workout.generateMorning')}
+            </button>
+          </div>
+        )}
+
+        {/* Evening session */}
+        {eveningSlots.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <label className="label">{t('workout.eveningSession')}</label>
+            <div className="card" style={{ marginBottom: 8 }}>
+              {eveningSlots.map((slot, i) => {
+                const program = programs.find(p => p.id === slot.programId);
+                return (
+                  <div key={i} style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                    padding: i > 0 ? '8px 0 0' : undefined,
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                        {program?.name ?? slot.programId}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                        {t(`schedule.slot.${slot.slot}`, { defaultValue: 'Evening' })}
+                      </div>
+                    </div>
+                    <span style={{
+                      display: 'inline-block', padding: '2px 8px', borderRadius: 4,
+                      fontSize: '0.6875rem', fontWeight: 500,
+                      background: 'var(--warning-bg)', border: '1px solid var(--warning)', color: 'var(--warning)',
+                    }}>{t('workout.evening')}</span>
+                  </div>
+                );
+              })}
+            </div>
+            <button
+              className="btn btn-secondary"
+              onClick={handleGenerate}
+              disabled={generating}
+              aria-label={t('workout.generateEvening')}
+            >
+              {generating ? t('workout.generating') : t('workout.generateEvening')}
+            </button>
           </div>
         )}
 
@@ -209,16 +259,6 @@ export default function WorkoutPage() {
             {error}
           </div>
         )}
-
-        <button
-          className="btn btn-primary"
-          onClick={handleGenerate}
-          disabled={generating}
-          style={{ maxWidth: 320, margin: '16px auto 0' }}
-          aria-label={t('workout.generate')}
-        >
-          {generating ? t('workout.generating') : t('workout.generate')}
-        </button>
       </div>
     );
   }

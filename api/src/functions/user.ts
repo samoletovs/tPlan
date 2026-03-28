@@ -20,6 +20,7 @@ app.http('getUser', {
     const table = getTable('tplanUsers');
     try {
       const entity = await table.getEntity(userId, 'profile');
+      const rawLevels = JSON.parse(entity.currentLevels as string || '{}');
       const user = {
         userId: entity.partitionKey,
         email: entity.email as string || '',
@@ -27,7 +28,7 @@ app.http('getUser', {
         locale: entity.locale as string || 'en',
         createdAt: entity.createdAt as string || new Date().toISOString(),
         enrolledPrograms: JSON.parse(entity.enrolledPrograms as string || '[]'),
-        currentLevels: JSON.parse(entity.currentLevels as string || '{}'),
+        currentLevels: normalizeLevels(rawLevels),
         preferences: JSON.parse(entity.preferences as string || JSON.stringify(DEFAULT_PREFERENCES)),
       };
       return { jsonBody: user };
@@ -93,3 +94,45 @@ app.http('updateUser', {
     }
   },
 });
+
+/**
+ * Normalize currentLevels from per-program storage format to flat frontend format.
+ * Storage: { "convict-conditioning": { "pushups": {...} }, "dumbbell-gymnastics": { "bicep-curl": {...} } }
+ * Frontend: { "pushups": {...}, "legRaises": {...}, "plank": {...}, "dumbbells": { weightKg, reps, consecutiveEasy } }
+ */
+function normalizeLevels(raw: Record<string, any>): Record<string, any> {
+  // If already in flat format (legacy), return as-is
+  if (raw.pushups || raw.legRaises || raw.squats) return raw;
+
+  const cc = raw['convict-conditioning'] || {};
+  const db = raw['dumbbell-gymnastics'] || {};
+
+  const flat: Record<string, any> = {
+    pushups: cc.pushups || { level: 1, sets: 2, reps: 5, consecutiveEasy: 0 },
+    legRaises: cc.legRaises || { level: 1, sets: 2, reps: 5, consecutiveEasy: 0 },
+    squats: cc.squats || { level: 1, sets: 2, reps: 5, consecutiveEasy: 0 },
+    bridges: cc.bridges || { level: 1, sets: 2, reps: 10, consecutiveEasy: 0 },
+    plank: cc.plank || { durationSec: 30, consecutiveEasy: 0 },
+    dumbbells: {
+      weightKg: 3.5,
+      reps: {} as Record<string, number>,
+      consecutiveEasy: {} as Record<string, number>,
+    },
+  };
+
+  const DB_NAMES: Record<string, string> = {
+    'tennis-ball': 'Tennis Ball Squeeze', 'bicep-curl': 'Bicep Curl', 'reverse-curl': 'Reverse Curl',
+    'french-press': 'French Press', 'front-raise': 'Front Raise', 'bench-press': 'Dumbbell Bench Press',
+    'neck-raise': 'Neck Raise', 'back-extension': 'Back Extension', 'side-bend': 'Side Bend',
+    'db-squat': 'Dumbbell Squat', 'calf-raise': 'Calf Raise', 'wrist-curl': 'Wrist Curl',
+    'reverse-wrist': 'Reverse Wrist Curl',
+  };
+
+  for (const [id, data] of Object.entries(db)) {
+    const name = DB_NAMES[id] || id;
+    flat.dumbbells.reps[name] = (data as any).reps || 5;
+    flat.dumbbells.consecutiveEasy[name] = (data as any).consecutiveEasy || 0;
+  }
+
+  return flat;
+}

@@ -76,6 +76,27 @@ export default function Dashboard() {
     }],
   } : null;
 
+  // Dynamic Y-axis range for weight chart (±5 kg from min/max)
+  const weightYMin = weightData
+    ? Math.floor(Math.min(...stats.weightHistory.map(w => w.weight)) - 5)
+    : 0;
+  const weightYMax = weightData
+    ? Math.ceil(Math.max(...stats.weightHistory.map(w => w.weight)) + 5)
+    : 100;
+
+  const weightChartOptions = {
+    ...chartOptions,
+    scales: {
+      ...chartOptions.scales,
+      y: {
+        ...chartOptions.scales.y,
+        beginAtZero: false,
+        min: weightYMin,
+        max: weightYMax,
+      },
+    },
+  };
+
   // Reps per exercise chart
   const repsData = stats.repsPerExercise.length > 0 ? buildRepsChart(stats.repsPerExercise) : null;
 
@@ -107,7 +128,7 @@ export default function Dashboard() {
         <div className="card">
           <h3 style={{ marginBottom: 12 }}>{t('dashboard.weightChart')}</h3>
           <div style={{ height: 180 }}>
-            <Line data={weightData} options={chartOptions} />
+            <Line data={weightData} options={weightChartOptions} />
           </div>
         </div>
       )}
