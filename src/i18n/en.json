@@ -8,6 +8,8 @@
     "dashboard": "Dashboard",
     "workout": "Workout",
     "history": "History",
+    "schedule": "Schedule",
+    "programs": "Programs",
     "challenges": "Challenges",
     "profile": "Profile",
     "leaderboard": "Leaderboard"
@@ -45,7 +47,8 @@
     "noData": "No workouts yet. Start your first workout!",
     "weightChart": "Weight Over Time",
     "repsChart": "Reps Per Exercise",
-    "difficultyChart": "Difficulty Distribution"
+    "difficultyChart": "Difficulty Distribution",
+    "viewHistory": "View Workout History"
   },
   "workout": {
     "title": "Today's Workout",
@@ -73,7 +76,12 @@
     "stopTimer": "Stop",
     "timerDone": "Done",
     "noWorkout": "No workout planned for today",
-    "generatePrompt": "Generate a workout plan based on your current progress?"
+    "generatePrompt": "Generate a workout plan based on your current progress?",
+    "todaySchedule": "Today's Schedule",
+    "restDay": "Rest day — no workouts scheduled",
+    "exercises": "exercises",
+    "steps": "steps",
+    "exerciseList": "Exercises"
   },
   "summary": {
     "title": "Workout Complete!",
@@ -94,7 +102,10 @@
     "bodyWeight": "Weight",
     "streak": "Streak",
     "noLogs": "No workout history yet.",
-    "minutes": "{{count}} min"
+    "minutes": "{{count}} min",
+    "exercise": "Exercise",
+    "result": "Result",
+    "difficulty": "Difficulty"
   },
   "challenges": {
     "title": "Challenges",
@@ -122,9 +133,15 @@
     "language": "Language",
     "preferences": "Preferences",
     "currentLevels": "Current Levels",
+    "calisthenicsLevels": "Calisthenics Levels",
+    "dumbbellLevels": "Dumbbell Levels",
+    "dumbbellWeight": "Current weight: {{weight}} kg",
     "defaultDifficulty": "Default difficulty",
     "sound": "Sound effects",
     "restTimer": "Rest timer",
+    "weekStartsOn": "Week starts on",
+    "monday": "Monday",
+    "sunday": "Sunday",
     "save": "Save Changes",
     "saved": "Saved!"
   },
@@ -152,6 +169,36 @@
     "submitted": "Thanks! Your feedback has been submitted.",
     "error": "Failed to submit feedback. Please try again."
   },
+  "programs": {
+    "title": "Programs",
+    "noPrograms": "No programs enrolled yet.",
+    "typeCalisthenics": "Calisthenics",
+    "typeWeights": "Weights",
+    "typeCustom": "Custom",
+    "exerciseCount": "{{count}} exercises",
+    "timedExercise": "Timed hold",
+    "progressionRule": "+{{reps}} reps after {{threshold}} easy sessions"
+  },
+  "schedule": {
+    "title": "Weekly Schedule",
+    "noSchedule": "No schedule set up yet. Generate your first workout to create one.",
+    "today": "Today",
+    "rest": "Rest",
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "slot": {
+      "A": "Day A",
+      "B": "Day B",
+      "evening": "Evening"
+    }
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
@@ -159,6 +206,7 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "save": "Save",
+    "saving": "Saving...",
     "delete": "Delete",
     "back": "Back",
     "next": "Next",

@@ -144,6 +144,71 @@ export interface DashboardStats {
   difficultyDistribution: { date: string; easy: number; normal: number; hard: number }[];
 }
 
+// ===== Programs =====
+export interface Program {
+  id: string;
+  name: string;
+  description: string;
+  type: 'calisthenics' | 'weights' | 'custom';
+  source: string;
+  exercises: ProgramExercise[];
+  levels: ProgramLevel[];
+  progressionRules: ProgressionRules;
+  createdAt: string;
+}
+
+export interface ProgramExercise {
+  id: string;
+  name: string;
+  type: 'reps' | 'timed';
+  technique: string;
+  tempo: string;
+  restBetweenSets: number;
+  defaultSets: number;
+  defaultReps: number;
+  startLevel: number;
+  slots: string[];
+}
+
+export interface ProgramLevel {
+  exerciseId: string;
+  level: number;
+  name: string;
+  technique: string;
+  beginnerReps: number;
+  advancedReps: number;
+}
+
+export interface ProgressionRules {
+  repsIncrement: number;
+  consecutiveEasyThreshold: number;
+  levelUpAtMaxReps: boolean;
+}
+
+// ===== Schedule =====
+export interface ScheduleSlot {
+  programId: string;
+  slot: string;
+}
+
+export interface WeeklySchedule {
+  mon: ScheduleSlot[];
+  tue: ScheduleSlot[];
+  wed: ScheduleSlot[];
+  thu: ScheduleSlot[];
+  fri: ScheduleSlot[];
+  sat: ScheduleSlot[];
+  sun: ScheduleSlot[];
+}
+
+export type DayOfWeek = keyof WeeklySchedule;
+
+export interface ScheduleData {
+  weeklySchedule: WeeklySchedule;
+  programs: { programId: string; currentLevels: Record<string, LevelProgress> }[];
+  updatedAt: string;
+}
+
 // ===== Challenges =====
 export type ChallengeType = 'streak' | 'volume' | 'consistency';
 

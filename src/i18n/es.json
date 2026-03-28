@@ -8,6 +8,8 @@
     "dashboard": "Panel",
     "workout": "Entrenamiento",
     "history": "Historial",
+    "schedule": "Horario",
+    "programs": "Programas",
     "challenges": "Desafíos",
     "profile": "Perfil",
     "leaderboard": "Clasificación"
@@ -45,7 +47,8 @@
     "noData": "Aún no hay entrenamientos. ¡Comienza tu primero!",
     "weightChart": "Peso en el Tiempo",
     "repsChart": "Repeticiones por Ejercicio",
-    "difficultyChart": "Distribución de Dificultad"
+    "difficultyChart": "Distribución de Dificultad",
+    "viewHistory": "Ver historial de entrenamientos"
   },
   "workout": {
     "title": "Entrenamiento de Hoy",
@@ -73,7 +76,12 @@
     "stopTimer": "Parar",
     "timerDone": "Hecho",
     "noWorkout": "No hay entrenamiento planeado para hoy",
-    "generatePrompt": "¿Generar un plan de entrenamiento basado en tu progreso?"
+    "generatePrompt": "¿Generar un plan de entrenamiento basado en tu progreso?",
+    "todaySchedule": "Horario de hoy",
+    "restDay": "Día de descanso — no hay entrenamientos",
+    "exercises": "ejercicios",
+    "steps": "pasos",
+    "exerciseList": "Ejercicios"
   },
   "summary": {
     "title": "¡Entrenamiento Completado!",
@@ -94,7 +102,10 @@
     "bodyWeight": "Peso",
     "streak": "Racha",
     "noLogs": "Aún no hay historial de entrenamientos.",
-    "minutes": "{{count}} min"
+    "minutes": "{{count}} min",
+    "exercise": "Ejercicio",
+    "result": "Resultado",
+    "difficulty": "Dificultad"
   },
   "challenges": {
     "title": "Desafíos",
@@ -122,9 +133,15 @@
     "language": "Idioma",
     "preferences": "Preferencias",
     "currentLevels": "Niveles Actuales",
+    "calisthenicsLevels": "Niveles de Calistenia",
+    "dumbbellLevels": "Niveles de Mancuernas",
+    "dumbbellWeight": "Peso actual: {{weight}} kg",
     "defaultDifficulty": "Dificultad por defecto",
     "sound": "Efectos de sonido",
     "restTimer": "Temporizador de descanso",
+    "weekStartsOn": "La semana empieza el",
+    "monday": "Lunes",
+    "sunday": "Domingo",
     "save": "Guardar",
     "saved": "¡Guardado!"
   },
@@ -152,6 +169,36 @@
     "submitted": "¡Gracias! Tu comentario ha sido enviado.",
     "error": "No se pudo enviar. Inténtalo de nuevo."
   },
+  "programs": {
+    "title": "Programas",
+    "noPrograms": "Aún no hay programas.",
+    "typeCalisthenics": "Calistenia",
+    "typeWeights": "Con pesos",
+    "typeCustom": "Personalizado",
+    "exerciseCount": "{{count}} ejercicios",
+    "timedExercise": "Mantenimiento por tiempo",
+    "progressionRule": "+{{reps}} repeticiones tras {{threshold}} sesiones fáciles"
+  },
+  "schedule": {
+    "title": "Horario Semanal",
+    "noSchedule": "Aún no hay horario. Genera tu primer entrenamiento.",
+    "today": "Hoy",
+    "rest": "Descanso",
+    "days": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb",
+      "sun": "Dom"
+    },
+    "slot": {
+      "A": "Día A",
+      "B": "Día B",
+      "evening": "Noche"
+    }
+  },
   "common": {
     "loading": "Cargando...",
     "error": "Algo salió mal",
@@ -159,6 +206,7 @@
     "cancel": "Cancelar",
     "confirm": "Confirmar",
     "save": "Guardar",
+    "saving": "Guardando...",
     "delete": "Eliminar",
     "back": "Atrás",
     "next": "Siguiente",

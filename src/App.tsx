@@ -7,7 +7,8 @@ import AppShell from './pages/AppShell';
 import Dashboard from './pages/Dashboard';
 import WorkoutPage from './pages/WorkoutPage';
 import History from './pages/History';
-import Challenges from './pages/Challenges';
+import Schedule from './pages/Schedule';
+import Programs from './pages/Programs';
 import Profile from './pages/Profile';
 
 export default function App() {
@@ -21,7 +22,8 @@ export default function App() {
             <Route path="workout" element={<WorkoutPage />} />
             <Route path="workout/:id" element={<WorkoutPage />} />
             <Route path="history" element={<History />} />
-            <Route path="challenges" element={<Challenges />} />
+            <Route path="schedule" element={<Schedule />} />
+            <Route path="programs" element={<Programs />} />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

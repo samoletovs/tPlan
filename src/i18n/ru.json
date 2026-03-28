@@ -8,6 +8,8 @@
     "dashboard": "Дашборд",
     "workout": "Тренировка",
     "history": "История",
+    "schedule": "Расписание",
+    "programs": "Программы",
     "challenges": "Вызовы",
     "profile": "Профиль",
     "leaderboard": "Рейтинг"
@@ -45,7 +47,8 @@
     "noData": "Пока нет тренировок. Начни свою первую!",
     "weightChart": "Вес по времени",
     "repsChart": "Повторения по упражнениям",
-    "difficultyChart": "Распределение сложности"
+    "difficultyChart": "Распределение сложности",
+    "viewHistory": "Смотреть историю тренировок"
   },
   "workout": {
     "title": "Тренировка сегодня",
@@ -73,7 +76,12 @@
     "stopTimer": "Стоп",
     "timerDone": "Готово",
     "noWorkout": "На сегодня нет тренировки",
-    "generatePrompt": "Создать план тренировки на основе твоего прогресса?"
+    "generatePrompt": "Создать план тренировки на основе твоего прогресса?",
+    "todaySchedule": "Расписание на сегодня",
+    "restDay": "День отдыха — тренировок нет",
+    "exercises": "упражнений",
+    "steps": "шагов",
+    "exerciseList": "Упражнения"
   },
   "summary": {
     "title": "Тренировка завершена!",
@@ -94,7 +102,10 @@
     "bodyWeight": "Вес",
     "streak": "Серия",
     "noLogs": "Пока нет истории тренировок.",
-    "minutes": "{{count}} мин"
+    "minutes": "{{count}} мин",
+    "exercise": "Упражнение",
+    "result": "Результат",
+    "difficulty": "Сложность"
   },
   "challenges": {
     "title": "Вызовы",
@@ -122,9 +133,15 @@
     "language": "Язык",
     "preferences": "Настройки",
     "currentLevels": "Текущие уровни",
+    "calisthenicsLevels": "Уровни калистеники",
+    "dumbbellLevels": "Уровни с гантелями",
+    "dumbbellWeight": "Текущий вес: {{weight}} кг",
     "defaultDifficulty": "Сложность по умолчанию",
     "sound": "Звуковые эффекты",
     "restTimer": "Таймер отдыха",
+    "weekStartsOn": "Неделя начинается с",
+    "monday": "Понедельник",
+    "sunday": "Воскресенье",
     "save": "Сохранить",
     "saved": "Сохранено!"
   },
@@ -152,6 +169,36 @@
     "submitted": "Спасибо! Твой отзыв отправлен.",
     "error": "Не удалось отправить. Попробуй ещё раз."
   },
+  "programs": {
+    "title": "Программы",
+    "noPrograms": "Пока нет программ.",
+    "typeCalisthenics": "Калистеника",
+    "typeWeights": "С весами",
+    "typeCustom": "Другое",
+    "exerciseCount": "{{count}} упражнений",
+    "timedExercise": "Удержание на время",
+    "progressionRule": "+{{reps}} повтора после {{threshold}} лёгких тренировок"
+  },
+  "schedule": {
+    "title": "Расписание на неделю",
+    "noSchedule": "Расписание ещё не создано. Создай первую тренировку.",
+    "today": "Сегодня",
+    "rest": "Отдых",
+    "days": {
+      "mon": "Пн",
+      "tue": "Вт",
+      "wed": "Ср",
+      "thu": "Чт",
+      "fri": "Пт",
+      "sat": "Сб",
+      "sun": "Вс"
+    },
+    "slot": {
+      "A": "День A",
+      "B": "День B",
+      "evening": "Вечер"
+    }
+  },
   "common": {
     "loading": "Загрузка...",
     "error": "Что-то пошло не так",
@@ -159,6 +206,7 @@
     "cancel": "Отмена",
     "confirm": "Подтвердить",
     "save": "Сохранить",
+    "saving": "Сохраняю...",
     "delete": "Удалить",
     "back": "Назад",
     "next": "Далее",

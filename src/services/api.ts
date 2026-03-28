@@ -1,6 +1,6 @@
 import type {
   User, Workout, WorkoutLog, DashboardStats,
-  ApiResponse,
+  ApiResponse, Program, ScheduleData,
 } from '../types';
 
 const BASE = '/api';
@@ -23,13 +23,13 @@ export const updateUser = (data: Partial<User>) =>
   request<User>('/user', { method: 'PUT', body: JSON.stringify(data) });
 
 // ===== Programs =====
-export const getPrograms = () => request<any[]>('/programs');
-export const getProgram = (id: string) => request<any>(`/programs/${id}`);
+export const getPrograms = () => request<Program[]>('/programs');
+export const getProgram = (id: string) => request<Program>(`/programs/${id}`);
 
 // ===== Schedule =====
-export const getSchedule = () => request<any>('/schedule');
-export const updateSchedule = (data: any) =>
-  request<any>('/schedule', { method: 'PUT', body: JSON.stringify(data) });
+export const getSchedule = () => request<ScheduleData>('/schedule');
+export const updateSchedule = (data: Partial<ScheduleData>) =>
+  request<ScheduleData>('/schedule', { method: 'PUT', body: JSON.stringify(data) });
 
 // ===== Workouts =====
 export const getWorkouts = () => request<Workout[]>('/workouts');

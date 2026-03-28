@@ -8,6 +8,8 @@
     "dashboard": "Panelis",
     "workout": "Treniņš",
     "history": "Vēsture",
+    "schedule": "Grafiks",
+    "programs": "Programmas",
     "challenges": "Izaicinājumi",
     "profile": "Profils",
     "leaderboard": "Līderu tabula"
@@ -45,7 +47,8 @@
     "noData": "Vēl nav treniņu. Sāc savu pirmo!",
     "weightChart": "Svars laika gaitā",
     "repsChart": "Atkārtojumi pa vingrojumiem",
-    "difficultyChart": "Grūtības sadalījums"
+    "difficultyChart": "Grūtības sadalījums",
+    "viewHistory": "Skatīt treniņu vēsturi"
   },
   "workout": {
     "title": "Šodienas treniņš",
@@ -73,7 +76,12 @@
     "stopTimer": "Apturēt",
     "timerDone": "Gatavs",
     "noWorkout": "Šodien nav ieplānots treniņš",
-    "generatePrompt": "Ģenerēt treniņa plānu, balstoties uz tavu progresu?"
+    "generatePrompt": "Ģenerēt treniņa plānu, balstoties uz tavu progresu?",
+    "todaySchedule": "Šodienas grafiks",
+    "restDay": "Atpūtas diena — nav treniņu",
+    "exercises": "vingrojumi",
+    "steps": "soļi",
+    "exerciseList": "Vingrojumi"
   },
   "summary": {
     "title": "Treniņš pabeigts!",
@@ -94,7 +102,10 @@
     "bodyWeight": "Svars",
     "streak": "Sērija",
     "noLogs": "Vēl nav treniņu vēstures.",
-    "minutes": "{{count}} min"
+    "minutes": "{{count}} min",
+    "exercise": "Vingrojums",
+    "result": "Rezultāts",
+    "difficulty": "Grūtība"
   },
   "challenges": {
     "title": "Izaicinājumi",
@@ -122,9 +133,15 @@
     "language": "Valoda",
     "preferences": "Iestatījumi",
     "currentLevels": "Pašreizējie līmeņi",
+    "calisthenicsLevels": "Kalistēnikas līmeņi",
+    "dumbbellLevels": "Hanteļu līmeņi",
+    "dumbbellWeight": "Pašreizējais svars: {{weight}} kg",
     "defaultDifficulty": "Noklusējuma grūtība",
     "sound": "Skaņas efekti",
     "restTimer": "Atpūtas taimeris",
+    "weekStartsOn": "Nedēļa sākas ar",
+    "monday": "Pirmdiena",
+    "sunday": "Svētdiena",
     "save": "Saglabāt",
     "saved": "Saglabāts!"
   },
@@ -152,6 +169,36 @@
     "submitted": "Paldies! Tava atsauksme ir nosūtīta.",
     "error": "Neizdevās nosūtīt. Mēģini vēlreiz."
   },
+  "programs": {
+    "title": "Programmas",
+    "noPrograms": "Vēl nav programmu.",
+    "typeCalisthenics": "Kalistēnika",
+    "typeWeights": "Ar svariem",
+    "typeCustom": "Cits",
+    "exerciseCount": "{{count}} vingrojumi",
+    "timedExercise": "Turēšana uz laiku",
+    "progressionRule": "+{{reps}} atkārtojumi pēc {{threshold}} vieglām reizēm"
+  },
+  "schedule": {
+    "title": "Nedēļas grafiks",
+    "noSchedule": "Grafiks vēl nav izveidots. Ģenerē pirmo treniņu.",
+    "today": "Šodien",
+    "rest": "Atpūta",
+    "days": {
+      "mon": "Pr",
+      "tue": "Ot",
+      "wed": "Tr",
+      "thu": "Ce",
+      "fri": "Pk",
+      "sat": "Se",
+      "sun": "Sv"
+    },
+    "slot": {
+      "A": "Diena A",
+      "B": "Diena B",
+      "evening": "Vakars"
+    }
+  },
   "common": {
     "loading": "Ielādē...",
     "error": "Kaut kas nogāja greizi",
@@ -159,6 +206,7 @@
     "cancel": "Atcelt",
     "confirm": "Apstiprināt",
     "save": "Saglabāt",
+    "saving": "Saglabā...",
     "delete": "Dzēst",
     "back": "Atpakaļ",
     "next": "Tālāk",
