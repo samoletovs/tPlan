@@ -38,6 +38,3 @@ Thumbs.db
 
 # Playwright
 .playwright-mcp/
-
-# Screenshots (dev artifacts)
-*.png

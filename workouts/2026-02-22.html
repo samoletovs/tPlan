@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тренировка — Вс 22.02</title>
+<link rel="stylesheet" href="../template/styles.css">
+</head>
+<body>
+
+<h1>🏋️ Воскресенье, 22 февраля</h1>
+<div class="sub">Неделя 1 · Лёгкий день · Фаза адаптации</div>
+
+<div id="streak" class="streak hidden"></div>
+
+<div class="prog">
+  <div class="prog-bar"><div class="prog-fill" id="pFill" style="width:0%"></div></div>
+  <div class="prog-text" id="pText">0 / 0</div>
+</div>
+
+<div id="steps"></div>
+
+<!-- Итоги -->
+<div id="summary" class="hidden">
+  <div style="text-align:center;margin:20px 0">
+    <div style="font-size:2.5em">🎉</div>
+    <h2 style="margin:8px 0">Готово!</h2>
+    <div class="sub">Отличная работа. Лёгкий день — тоже тренировка!</div>
+  </div>
+  <div id="summaryBody"></div>
+  <div class="weight-row">
+    <label>⚖️ Вес:</label>
+    <input type="number" class="weight-input" id="bodyWeight" placeholder="0" min="30" max="250" step="0.1">
+    <span class="weight-unit">кг</span>
+  </div>
+  <label style="font-size:.82em;color:var(--muted)">Заметки / как ощущения:</label>
+  <textarea class="final-notes" id="finalNotes" placeholder="Любые комментарии..."></textarea>
+  <button class="btn btn-save" onclick="exportResults()">📤 Экспортировать JSON</button>
+  <div id="saveMsg" style="text-align:center;margin-top:10px;font-size:.82em;color:var(--accent)"></div>
+</div>
+
+<script>
+const WORKOUT = {
+  date: "2026-02-22",
+  day: "Воскресенье",
+  title: "Лёгкий день",
+  week: 1,
+  streak: 1,
+  previousResults: [
+    { "name": "Полные отжимания", "set": "Уровень 5 · Подход 1 из 2", "planned": 5, "actual": 5, "difficulty": "normal" },
+    { "name": "Полные отжимания", "set": "Уровень 5 · Подход 2 из 2", "planned": 5, "actual": 5, "difficulty": "normal" },
+    { "name": "Подъёмы согнутых ног лёжа", "set": "Уровень 3 · Пресс · Подход 1 из 2", "planned": 5, "actual": 5, "difficulty": "easy" },
+    { "name": "Подъёмы согнутых ног лёжа", "set": "Уровень 3 · Пресс · Подход 2 из 2", "planned": 5, "actual": 5, "difficulty": "easy" }
+  ],
+  steps: [
+    {
+      type: "warmup",
+      name: "Разминка",
+      items: [
+        { text: "Ходьба на месте — 1 мин", desc: "Шагай в спокойном темпе, поднимая колени. Сегодня лёгкий день — разогревайся мягко.", timer: 60 },
+        { text: "Круговые вращения руками вперёд/назад — по 10", desc: "Прямые руки, плавная амплитуда. Разогреваем плечевые суставы." },
+        { text: "Круговые вращения в локтях — по 10", desc: "Руки вытянуты вперёд, вращай предплечьями. Готовит локти к отжиманиям." },
+        { text: "Наклоны корпуса (вперёд/назад/в стороны) — по 5", desc: "Стоя ровно, плавно наклоняйся. Мобилизация позвоночника." },
+        { text: "Круговые вращения тазом — по 10 в каждую сторону", desc: "Руки на поясе, бёдра описывают круги." }
+      ]
+    },
+    {
+      type: "exercise",
+      name: "Полные отжимания",
+      meta: "Уровень 5 · Подход 1 из 2",
+      technique: "Руки на ширине плеч, пальцы вперёд. Тело — прямая линия от пяток до макушки. Опускайся, пока грудь не будет на высоте кулака от пола. Темп: 2 сек вниз → 1 сек пауза внизу → 2 сек вверх. Не прогибай поясницу!",
+      tempo: "2-1-2",
+      planned: 5,
+      rest: 60
+    },
+    {
+      type: "exercise",
+      name: "Полные отжимания",
+      meta: "Уровень 5 · Подход 2 из 2",
+      technique: "Тот же темп 2-1-2. Следи за формой — лучше меньше повторов чисто, чем больше с кривой техникой. Локти под ~45°, не разводи в стороны.",
+      tempo: "2-1-2",
+      planned: 5,
+      rest: 60
+    },
+    {
+      type: "exercise",
+      name: "Подъёмы согнутых ног лёжа",
+      meta: "Уровень 3 · Пресс · Подход 1 из 2",
+      technique: "Ляг на спину, руки вдоль тела ладонями вниз. Согни колени под ~45°. Плавно подними стопы выше бёдер (колени к груди). Медленно опусти — не бросай ноги! Поясница прижата к полу.",
+      tempo: "2-1-2",
+      planned: 5,
+      rest: 60
+    },
+    {
+      type: "exercise",
+      name: "Подъёмы согнутых ног лёжа",
+      meta: "Уровень 3 · Пресс · Подход 2 из 2",
+      technique: "Плавно и подконтрольно. Выдыхай на подъёме ног. Не напрягай шею — работает только пресс.",
+      tempo: "2-1-2",
+      planned: 5,
+      rest: 0
+    },
+    {
+      type: "cooldown",
+      name: "Растяжка и прогулка",
+      items: [
+        { text: "Растяжка груди в дверном проёме — 20 сек на сторону", desc: "Упрись предплечьем в дверной косяк, корпус вперёд. Чувствуй растяжение в груди.", timer: 40 },
+        { text: "Наклон вперёд стоя — 30 сек", desc: "Ноги прямые, тянись руками к полу. Дыши и расслабляйся.", timer: 30 },
+        { text: "Кошка-корова на четвереньках — 10 повторений", desc: "Прогни спину вниз (вдох), затем округли вверх (выдох). Плавно, синхронно с дыханием." },
+        { text: "Поза ребёнка — 30 сек", desc: "Сядь на пятки, руки вытяни вперёд по полу, лоб к полу. Расслабь спину и дыши глубоко.", timer: 30 },
+        { text: "Растяжка квадрицепса — 20 сек на ногу", desc: "Стоя, подтяни пятку к ягодице рукой. Колени вместе.", timer: 40 },
+        { text: "🚶 Прогулка 20–30 мин", desc: "Спокойным шагом на свежем воздухе. Восстановительная ходьба — важная часть лёгкого дня!" }
+      ]
+    }
+  ]
+};
+</script>
+<script src="../template/app.js"></script>
+</body>
+</html>
