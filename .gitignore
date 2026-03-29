@@ -39,5 +39,8 @@ Thumbs.db
 # Playwright
 .playwright-mcp/
 
+# Shared skills (copies from workspace, not project-specific)
+.github/skills/
+
 # Screenshots (dev artifacts)
 *.png
