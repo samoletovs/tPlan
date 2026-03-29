@@ -43,4 +43,7 @@ Thumbs.db
 .github/skills/
 
 # Screenshots (dev artifacts)
+screenshots/
+test-screenshots/
+**/test-screenshots/
 *.png
