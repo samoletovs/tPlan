@@ -8,11 +8,11 @@ import { CC_PROGRAM } from '../data/cc-program.js';
  * The workout generator resolves the training day type to specific exercises.
  */
 const SEED_SCHEDULE = {
-  mon: [{ programId: 'convict-conditioning', slot: 'push_core' }],
+  mon: [{ programId: 'convict-conditioning', slot: 'morning' }],
   tue: [],
-  wed: [{ programId: 'convict-conditioning', slot: 'pull_legs' }, { programId: 'dumbbell-gymnastics', slot: 'evening' }],
+  wed: [{ programId: 'convict-conditioning', slot: 'morning' }, { programId: 'dumbbell-gymnastics', slot: 'evening' }],
   thu: [],
-  fri: [{ programId: 'convict-conditioning', slot: 'vertical_posterior' }],
+  fri: [{ programId: 'convict-conditioning', slot: 'morning' }],
   sat: [{ programId: 'dumbbell-gymnastics', slot: 'evening' }],
   sun: [],
 };

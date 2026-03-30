@@ -1,55 +1,36 @@
 {
   "schedule": {
-    "sat": [
-      {
-        "programId": "convict-conditioning",
-        "slot": "A"
-      },
-      {
-        "programId": "dumbbell-gymnastics",
-        "slot": "evening"
-      }
-    ],
-    "sun": [
-      {
-        "programId": "convict-conditioning",
-        "slot": "B"
-      }
-    ],
-    "wed": [
-      {
-        "programId": "convict-conditioning",
-        "slot": "B"
-      },
-      {
-        "programId": "dumbbell-gymnastics",
-        "slot": "evening"
-      }
-    ],
-    "thu": [
-      {
-        "programId": "convict-conditioning",
-        "slot": "A"
-      }
-    ],
     "mon": [
       {
         "programId": "convict-conditioning",
-        "slot": "B"
+        "slot": "morning"
       }
     ],
-    "tue": [
+    "tue": [],
+    "wed": [
       {
         "programId": "convict-conditioning",
-        "slot": "A"
+        "slot": "morning"
+      },
+      {
+        "programId": "dumbbell-gymnastics",
+        "slot": "evening"
       }
     ],
+    "thu": [],
     "fri": [
       {
         "programId": "convict-conditioning",
-        "slot": "B"
+        "slot": "morning"
       }
-    ]
+    ],
+    "sat": [
+      {
+        "programId": "dumbbell-gymnastics",
+        "slot": "evening"
+      }
+    ],
+    "sun": []
   },
   "programs": [
     {
