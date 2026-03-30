@@ -17,7 +17,7 @@ export default function WorkoutPage() {
   const { id } = useParams();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [loading, setLoading] = useState(true);
-  const [generating, setGenerating] = useState(false);
+  const [generating, setGenerating] = useState<string | false>(false);
   const [current, setCurrent] = useState(0);
   const [results, setResults] = useState<ExerciseResult[]>([]);
   const [resting, setResting] = useState(false);
@@ -83,7 +83,7 @@ export default function WorkoutPage() {
   }
 
   async function handleGenerate(session?: 'morning' | 'evening') {
-    setGenerating(true);
+    setGenerating(session || 'morning');
     setError(null);
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -182,7 +182,10 @@ export default function WorkoutPage() {
     const eveningSlots = todaySlots.filter(s => s.slot === 'evening');
     // Legacy: treat unknown slots (A/B/push_core etc.) as morning
     const legacySlots = todaySlots.filter(s => !['morning', 'day', 'evening'].includes(s.slot));
-    const allMorning = [...morningSlots, ...legacySlots, ...daySlots];
+    // Merge and deduplicate by programId (keep time-based over legacy)
+    const morningProgramIds = new Set(morningSlots.map(s => s.programId));
+    const dedupedLegacy = legacySlots.filter(s => !morningProgramIds.has(s.programId));
+    const allMorning = [...morningSlots, ...dedupedLegacy, ...daySlots];
 
     return (
       <div>
@@ -232,10 +235,10 @@ export default function WorkoutPage() {
             <button
               className="btn btn-primary"
               onClick={() => handleGenerate('morning')}
-              disabled={generating}
+              disabled={!!generating}
               aria-label={t('workout.generateMorning')}
             >
-              {generating ? t('workout.generating') : t('workout.generateMorning')}
+              {generating === 'morning' ? t('workout.generating') : t('workout.generateMorning')}
             </button>
           </div>
         )}
@@ -270,12 +273,12 @@ export default function WorkoutPage() {
               })}
             </div>
             <button
-              className="btn btn-secondary"
+              className="btn btn-primary"
               onClick={() => handleGenerate('evening')}
-              disabled={generating}
+              disabled={!!generating}
               aria-label={t('workout.generateEvening')}
             >
-              {generating ? t('workout.generating') : t('workout.generateEvening')}
+              {generating === 'evening' ? t('workout.generating') : t('workout.generateEvening')}
             </button>
           </div>
         )}
