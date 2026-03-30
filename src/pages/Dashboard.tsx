@@ -52,9 +52,6 @@ export default function Dashboard() {
         <h2 style={{ marginBottom: 24 }}>{t('dashboard.title')}</h2>
         <div className="empty-state">
           <p>{t('dashboard.noData')}</p>
-          <Link to="/app/workout" className="btn btn-primary" style={{ display: 'inline-flex', width: 'auto', padding: '10px 24px', marginTop: 8 }}>
-            {t('workout.start')}
-          </Link>
         </div>
       </div>
     );
@@ -113,12 +110,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-        <h2>{t('dashboard.title')}</h2>
-        <Link to="/app/workout" className="btn btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '0.8125rem' }}>
-          {t('workout.start')}
-        </Link>
-      </div>
+      <h2 style={{ marginBottom: 24 }}>{t('dashboard.title')}</h2>
 
       <div className="stats-grid">
         {statCards.map((s, i) => (
@@ -166,13 +158,10 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Quick links */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-        <Link to="/app/history" className="btn btn-ghost" style={{ flex: 1, fontSize: '0.8125rem' }}>
-          {t('dashboard.viewHistory')} \u2192
-        </Link>
-        <Link to="/app/schedule" className="btn btn-ghost" style={{ flex: 1, fontSize: '0.8125rem' }}>
-          {t('nav.schedule')} \u2192
+      {/* History link */}
+      <div style={{ textAlign: 'center', marginTop: 8 }}>
+        <Link to="/app/history" className="btn btn-ghost" style={{ fontSize: '0.8125rem' }}>
+          {t('dashboard.viewHistory')} {"\u2192"}
         </Link>
       </div>
     </div>
