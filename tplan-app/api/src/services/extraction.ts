@@ -13,6 +13,18 @@ Return a JSON object with EXACTLY this shape:
   "description": "Brief 1-2 sentence summary of the methodology",
   "type": "calisthenics" | "weights" | "custom",
   "source": "(will be filled by the system)",
+  "trainingDays": {
+    "day_type_id": { "exercises": ["exercise-id-1", "exercise-id-2"], "label": "Human label for this day type" }
+  },
+  "defaultSchedule": {
+    "mon": "day_type_id or null",
+    "tue": "day_type_id or null",
+    "wed": "day_type_id or null",
+    "thu": "day_type_id or null",
+    "fri": "day_type_id or null",
+    "sat": "day_type_id or null",
+    "sun": "day_type_id or null"
+  },
   "exercises": [
     {
       "id": "lowercase-kebab-case-id",
@@ -24,7 +36,7 @@ Return a JSON object with EXACTLY this shape:
       "defaultSets": 2,
       "defaultReps": 5,
       "startLevel": 1,
-      "slots": ["A"]
+      "slots": ["day_type_id"]
     }
   ],
   "levels": [
@@ -47,8 +59,9 @@ Return a JSON object with EXACTLY this shape:
 Rules:
 - Extract ALL exercises mentioned with progressive levels
 - Each exercise should have multiple levels if the book describes progressions
-- For books with alternating days (A/B splits), use slots ["A"] and ["B"]
-- For evening/separate sessions, use slot ["evening"]
+- Group exercises into "trainingDays" by muscle group pairing (e.g., push+core, pull+legs)
+- The book's recommended weekly schedule goes in "defaultSchedule" (null = rest day)
+- Each exercise's "slots" array references the day type IDs it belongs to
 - If the book has specific progression conditions (e.g., "when you can do 3x50, advance"), encode them in beginnerReps/advancedReps
 - "type" is "timed" ONLY for holds (planks, wall sits). Everything else is "reps"
 - Generate meaningful exercise IDs (e.g., "push-ups", "barbell-squat", "warrior-pose")

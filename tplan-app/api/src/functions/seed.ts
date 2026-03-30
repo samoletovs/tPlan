@@ -1,14 +1,20 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId, getUserEmail } from '../db.js';
+import { CC_PROGRAM } from '../data/cc-program.js';
 
+/**
+ * Schedule uses training day types from the program.
+ * CC "Good Behavior": 3 days/week with muscle group pairings.
+ * The workout generator resolves the training day type to specific exercises.
+ */
 const SEED_SCHEDULE = {
-  mon: [{ programId: 'convict-conditioning', slot: 'B' }],
-  tue: [{ programId: 'convict-conditioning', slot: 'A' }],
-  wed: [{ programId: 'convict-conditioning', slot: 'B' }, { programId: 'dumbbell-gymnastics', slot: 'evening' }],
-  thu: [{ programId: 'convict-conditioning', slot: 'A' }],
-  fri: [{ programId: 'convict-conditioning', slot: 'B' }],
-  sat: [{ programId: 'convict-conditioning', slot: 'A' }, { programId: 'dumbbell-gymnastics', slot: 'evening' }],
-  sun: [{ programId: 'convict-conditioning', slot: 'B' }],
+  mon: [{ programId: 'convict-conditioning', slot: 'push_core' }],
+  tue: [],
+  wed: [{ programId: 'convict-conditioning', slot: 'pull_legs' }, { programId: 'dumbbell-gymnastics', slot: 'evening' }],
+  thu: [],
+  fri: [{ programId: 'convict-conditioning', slot: 'vertical_posterior' }],
+  sat: [{ programId: 'dumbbell-gymnastics', slot: 'evening' }],
+  sun: [],
 };
 
 const SEED_PROGRAMS = [
@@ -98,9 +104,38 @@ app.http('seedUser', {
     // Remap any migrated logs from 'migrate-pending' to this user
     const remapped = await remapMigratedLogs(userId);
 
+    // Seed global programs if they don't exist
+    await seedGlobalPrograms();
+
     return { jsonBody: { message: 'Seeded: Convict Conditioning + Dumbbell Gymnastics', seeded: true, remappedLogs: remapped } };
   },
 });
+
+// Seed global programs into tplanPrograms table
+async function seedGlobalPrograms(): Promise<void> {
+  const table = getTable('tplanPrograms');
+
+  // Convict Conditioning
+  try {
+    await table.getEntity('global', CC_PROGRAM.id);
+  } catch {
+    // Doesn't exist — create it
+    await table.upsertEntity({
+      partitionKey: 'global',
+      rowKey: CC_PROGRAM.id,
+      name: CC_PROGRAM.name,
+      description: CC_PROGRAM.description,
+      type: CC_PROGRAM.type,
+      source: CC_PROGRAM.source,
+      exercises: JSON.stringify(CC_PROGRAM.exercises),
+      levels: JSON.stringify(CC_PROGRAM.levels),
+      progressionRules: JSON.stringify(CC_PROGRAM.progressionRules),
+      trainingDays: JSON.stringify(CC_PROGRAM.trainingDays),
+      defaultSchedule: JSON.stringify(CC_PROGRAM.defaultSchedule),
+      createdAt: new Date().toISOString(),
+    }, 'Replace');
+  }
+}
 
 // Remap migrated logs from 'migrate-pending' to real userId
 async function remapMigratedLogs(userId: string): Promise<number> {
