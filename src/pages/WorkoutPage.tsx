@@ -294,7 +294,7 @@ export default function WorkoutPage() {
           {workout.day} &middot; {exerciseCount} {t('workout.exercises')} &middot; {workout.steps.length} {t('workout.steps')}
         </p>
         {workout.streak >= 2 && (
-          <div className="streak">{'\uD83D\uDD25'} {workout.streak} {t('common.days')}</div>
+          <div className="streak">{'🔥'} {workout.streak} {t('common.days')}</div>
         )}
 
         {/* Exercise preview */}

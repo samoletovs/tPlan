@@ -134,7 +134,7 @@ export default function History() {
 }
 
 function DifficultyBadge({ difficulty }: { difficulty: string }) {
-  const emoji = difficulty === 'easy' ? '\uD83D\uDE0A' : difficulty === 'hard' ? '\uD83D\uDD25' : '\uD83D\uDCAA';
+  const emoji = difficulty === 'easy' ? '😊' : difficulty === 'hard' ? '🔥' : '💪';
   const cls = difficulty === 'easy' ? 'diff-badge-easy' : difficulty === 'hard' ? 'diff-badge-hard' : 'diff-badge-normal';
   return <span className={`diff-badge ${cls}`}>{emoji}</span>;
 }

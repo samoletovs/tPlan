@@ -184,7 +184,7 @@ export default function UploadProgram() {
   if (step === 'extracting') {
     return (
       <div className="text-center" style={{ paddingTop: 48 }}>
-        <div className="dropzone-icon">\uD83E\uDD16</div>
+        <div className="dropzone-icon">🤖</div>
         <h2 className="mb-sm">{t('upload.extracting')}</h2>
         <p className="text-secondary mb-lg">
           {t('upload.extractingDesc', { fileName })}
