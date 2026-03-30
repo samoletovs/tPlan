@@ -239,9 +239,3 @@ export interface ApiResponse<T = void> {
   data?: T;
   error?: string;
 }
-
-// ===== API =====
-export interface ApiResponse<T> {
-  data?: T;
-  error?: string;
-}

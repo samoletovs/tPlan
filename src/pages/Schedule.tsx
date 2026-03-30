@@ -8,12 +8,6 @@ const DAYS: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 /** Time-based slots — the user assigns a program to a time of day, not A/B */
 const TIME_SLOTS = ['morning', 'day', 'evening'] as const;
 
-const SLOT_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  morning: { bg: 'var(--accent-bg)', border: 'var(--accent)', text: 'var(--accent)' },
-  day: { bg: 'var(--success-bg)', border: 'var(--success)', text: 'var(--success)' },
-  evening: { bg: 'var(--warning-bg)', border: 'var(--warning)', text: 'var(--warning)' },
-};
-
 export default function Schedule() {
   const { t } = useTranslation();
   const [schedule, setSchedule] = useState<ScheduleData | null>(null);
@@ -97,7 +91,7 @@ export default function Schedule() {
   if (!schedule) {
     return (
       <div>
-        <h2 style={{ marginBottom: 24 }}>{t('schedule.title')}</h2>
+        <h2 className="mb-lg">{t('schedule.title')}</h2>
         <div className="empty-state">
           <p>{t('schedule.noSchedule')}</p>
         </div>
@@ -109,15 +103,15 @@ export default function Schedule() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 24 }}>{t('schedule.title')}</h2>
+      <h2 className="mb-lg">{t('schedule.title')}</h2>
 
       {saving && (
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 8, textAlign: 'center' }}>
+        <div className="text-xs text-tertiary text-center mb-sm">
           {t('common.saving')}
         </div>
       )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div className="flex-col gap-sm">
         {DAYS.map(day => {
           const slots = schedule.weeklySchedule[day] ?? [];
           const isToday = day === today;
@@ -126,56 +120,36 @@ export default function Schedule() {
           return (
             <div
               key={day}
-              className="card"
-              style={{
-                marginBottom: 0,
-                borderColor: isToday ? 'var(--accent)' : undefined,
-                background: isToday ? 'var(--accent-bg)' : undefined,
-              }}
+              className={`card schedule-day${isToday ? ' today' : ''}`}
             >
               <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
+                className="flex-between"
+                style={{ cursor: 'pointer' }}
                 onClick={() => setEditing(isEditing ? null : day)}
                 role="button"
                 aria-expanded={isEditing}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{
-                    fontWeight: isToday ? 600 : 500,
-                    fontSize: '0.875rem',
-                    color: isToday ? 'var(--accent)' : 'var(--text-primary)',
-                    minWidth: 32,
-                  }}>
+                <div className="flex gap-sm" style={{ alignItems: 'center' }}>
+                  <span className={`schedule-day-name${isToday ? ' today' : ''}`}>
                     {t(`schedule.days.${day}`)}
                   </span>
                   {isToday && (
-                    <span style={{
-                      fontSize: '0.625rem', fontWeight: 500, textTransform: 'uppercase',
-                      color: 'var(--accent)', letterSpacing: '0.06em',
-                    }}>
+                    <span className="schedule-today-badge">
                       {t('schedule.today')}
                     </span>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <div className="flex gap-xs" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                   {slots.length === 0 ? (
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                    <span className="text-xs text-tertiary">
                       {t('schedule.rest')}
                     </span>
                   ) : (
                     slots.map((s, i) => {
                       const program = programs.find(p => p.id === s.programId);
-                      const colors = SLOT_COLORS[s.slot] ?? SLOT_COLORS.morning;
+                      const slotCls = s.slot === 'evening' ? 'slot-evening' : s.slot === 'day' ? 'slot-day' : 'slot-morning';
                       return (
-                        <span
-                          key={i}
-                          style={{
-                            display: 'inline-block', padding: '2px 8px',
-                            borderRadius: 4, fontSize: '0.6875rem', fontWeight: 500,
-                            background: colors.bg, border: `1px solid ${colors.border}`,
-                            color: colors.text,
-                          }}
-                        >
+                        <span key={i} className={`slot-badge ${slotCls}`}>
                           {program?.name ? abbreviate(program.name) : s.programId} {t(`schedule.slot.${s.slot}`, { defaultValue: s.slot })}
                         </span>
                       );
@@ -185,29 +159,23 @@ export default function Schedule() {
               </div>
 
               {isEditing && (
-                <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                <div className="collapse-content">
                   {programs.map(program => (
-                    <div key={program.id} style={{ marginBottom: 8 }}>
-                      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-body)', marginBottom: 4 }}>
+                    <div key={program.id} className="mb-sm">
+                      <div className="text-sm font-medium mb-xs">
                         {program.name}
                       </div>
-                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      <div className="flex gap-xs" style={{ flexWrap: 'wrap' }}>
                         {TIME_SLOTS.map(slot => {
                           const isActive = slots.some(s => s.programId === program.id && s.slot === slot);
-                          const colors = SLOT_COLORS[slot];
+                          const activeCls = isActive ? ` active-${slot}` : '';
                           return (
                             <button
                               key={slot}
+                              className={`slot-toggle${activeCls}`}
                               onClick={() => handleToggleSlot(day, program.id, slot)}
                               aria-label={`${program.name} ${slot}`}
-                              style={{
-                                padding: '4px 12px', borderRadius: 6, fontSize: '0.75rem',
-                                fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s',
-                                border: `1px solid ${isActive ? colors.border : 'var(--border)'}`,
-                                background: isActive ? colors.bg : 'var(--bg-card)',
-                                color: isActive ? colors.text : 'var(--text-secondary)',
-                                fontFamily: 'var(--font)',
-                              }}
+                              aria-pressed={isActive}
                             >
                               {t(`schedule.slot.${slot}`)}
                             </button>

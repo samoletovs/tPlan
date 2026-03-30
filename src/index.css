@@ -402,6 +402,48 @@ tr:last-child td { border-bottom: none; }
 /* Collapsible content */
 .collapse-content { margin-top: 12px; border-top: 1px solid var(--border); padding-top: var(--space-sm); }
 
+/* Chart container */
+.chart-sm { height: 180px; margin-top: var(--space-sm); }
+.chart-md { height: 200px; margin-top: var(--space-sm); }
+
+/* Slot badge */
+.slot-badge {
+  display: inline-block; padding: 2px 8px; border-radius: var(--radius-xs);
+  font-size: 0.6875rem; font-weight: 500; border: 1px solid;
+}
+.slot-morning { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+.slot-day { background: var(--success-bg); border-color: var(--success); color: var(--success); }
+.slot-evening { background: var(--warning-bg); border-color: var(--warning); color: var(--warning); }
+
+/* Slot toggle button */
+.slot-toggle {
+  padding: 4px 12px; border-radius: 6px; font-size: 0.75rem;
+  font-weight: 500; cursor: pointer; transition: all 0.15s;
+  border: 1px solid var(--border); background: var(--bg-card);
+  color: var(--text-secondary); font-family: var(--font);
+}
+.slot-toggle.active-morning { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+.slot-toggle.active-day { border-color: var(--success); background: var(--success-bg); color: var(--success); }
+.slot-toggle.active-evening { border-color: var(--warning); background: var(--warning-bg); color: var(--warning); }
+
+/* Exercise row (shared between Programs, UploadProgram, WorkoutPage exercise preview) */
+.exercise-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: var(--space-sm) 0; border-bottom: 1px solid var(--border);
+}
+.exercise-row:last-child { border-bottom: none; }
+
+/* Schedule day card */
+.schedule-day { margin-bottom: 0; }
+.schedule-day.today { border-color: var(--accent); background: var(--accent-bg); }
+.schedule-day-name { font-weight: 500; font-size: 0.875rem; min-width: 32px; }
+.schedule-day-name.today { font-weight: 600; color: var(--accent); }
+.schedule-today-badge { font-size: 0.625rem; font-weight: 500; text-transform: uppercase; color: var(--accent); letter-spacing: 0.06em; }
+
+/* Session card (WorkoutPage slot display) */
+.session-slot-row { display: flex; justify-content: space-between; align-items: center; }
+.session-slot-row + .session-slot-row { padding-top: var(--space-sm); }
+
 /* Landing steps */
 .steps-row { display: flex; gap: var(--space-xl); margin: var(--space-xl) 0; width: 100%; max-width: 560px; justify-content: center; }
 .step-item { text-align: center; flex: 1; }

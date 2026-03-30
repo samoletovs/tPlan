@@ -169,7 +169,7 @@ export default function WorkoutPage() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('workout.title')}</h2>
+        <h2 className="mb-md">{t('workout.title')}</h2>
         <div className="skeleton" style={{ height: 200 }} />
       </div>
     );
@@ -189,45 +189,36 @@ export default function WorkoutPage() {
 
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('workout.title')}</h2>
+        <h2 className="mb-md">{t('workout.title')}</h2>
 
         {/* User note for workout generation */}
-        <div style={{ marginBottom: 16 }}>
+        <div className="mb-md">
           <input
             type="text"
-            className="input"
+            className="input text-sm"
             placeholder={t('workout.notePlaceholder')}
             value={userNote}
             onChange={e => setUserNote(e.target.value)}
-            style={{ fontSize: '0.8125rem' }}
+            aria-label={t('workout.notePlaceholder')}
           />
         </div>
 
         {/* Morning/Day session */}
         {allMorning.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
+          <div className="mb-md">
             <label className="label">{t('workout.morningSession')}</label>
-            <div className="card" style={{ marginBottom: 8 }}>
+            <div className="card mb-sm">
               {allMorning.map((slot, i) => {
                 const program = programs.find(p => p.id === slot.programId);
                 return (
-                  <div key={i} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: i > 0 ? '8px 0 0' : undefined,
-                  }}>
+                  <div key={i} className={`session-slot-row${i > 0 ? ' session-slot-row' : ''}`}>
                     <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                        {program?.name ?? slot.programId}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                      <div className="font-medium text-primary">{program?.name ?? slot.programId}</div>
+                      <div className="text-xs text-tertiary">
                         {t(`schedule.slot.${slot.slot}`, { defaultValue: `Day ${slot.slot}` })}
                       </div>
                     </div>
-                    <span style={{
-                      display: 'inline-block', padding: '2px 8px', borderRadius: 4,
-                      fontSize: '0.6875rem', fontWeight: 500,
-                      background: 'var(--accent-bg)', border: '1px solid var(--accent)', color: 'var(--accent)',
-                    }}>{slot.slot}</span>
+                    <span className="slot-badge slot-morning">{slot.slot}</span>
                   </div>
                 );
               })}
@@ -245,29 +236,20 @@ export default function WorkoutPage() {
 
         {/* Evening session */}
         {eveningSlots.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
+          <div className="mb-md">
             <label className="label">{t('workout.eveningSession')}</label>
-            <div className="card" style={{ marginBottom: 8 }}>
+            <div className="card mb-sm">
               {eveningSlots.map((slot, i) => {
                 const program = programs.find(p => p.id === slot.programId);
                 return (
-                  <div key={i} style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    padding: i > 0 ? '8px 0 0' : undefined,
-                  }}>
+                  <div key={i} className={`session-slot-row${i > 0 ? ' session-slot-row' : ''}`}>
                     <div>
-                      <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                        {program?.name ?? slot.programId}
-                      </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                      <div className="font-medium text-primary">{program?.name ?? slot.programId}</div>
+                      <div className="text-xs text-tertiary">
                         {t(`schedule.slot.${slot.slot}`, { defaultValue: 'Evening' })}
                       </div>
                     </div>
-                    <span style={{
-                      display: 'inline-block', padding: '2px 8px', borderRadius: 4,
-                      fontSize: '0.6875rem', fontWeight: 500,
-                      background: 'var(--warning-bg)', border: '1px solid var(--warning)', color: 'var(--warning)',
-                    }}>{t('workout.evening')}</span>
+                    <span className="slot-badge slot-evening">{t('workout.evening')}</span>
                   </div>
                 );
               })}
@@ -286,7 +268,7 @@ export default function WorkoutPage() {
         {todaySlots.length === 0 && (
           <div className="empty-state">
             <p>{t('workout.noWorkout')}</p>
-            <p style={{ fontSize: '0.875rem' }}>{t('workout.generatePrompt')}</p>
+            <p className="text-sm">{t('workout.generatePrompt')}</p>
           </div>
         )}
 
@@ -319,13 +301,9 @@ export default function WorkoutPage() {
         <div className="card mb-md">
           <label className="label">{t('workout.exerciseList')}</label>
           {workout.steps.filter(s => s.type === 'exercise').map((step, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: 'space-between',
-              padding: '6px 0', borderBottom: i < exerciseCount - 1 ? '1px solid var(--border)' : 'none',
-              fontSize: '0.875rem',
-            }}>
-              <span style={{ color: 'var(--text-body)' }}>{step.name}</span>
-              <span style={{ color: 'var(--text-tertiary)' }}>
+            <div key={i} className="exercise-row" style={{ fontSize: '0.875rem' }}>
+              <span className="text-body">{step.name}</span>
+              <span className="text-tertiary">
                 {'timer' in step && step.timer ? `${step.planned}s` : `${step.planned} reps`}
               </span>
             </div>

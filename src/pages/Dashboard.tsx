@@ -53,12 +53,12 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 24 }}>{t('dashboard.title')}</h2>
+        <h2 className="mb-lg">{t('dashboard.title')}</h2>
         <div className="stats-grid">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="stat-card">
-              <div className="skeleton" style={{ height: 36, width: '50%', margin: '0 auto 8px' }} />
-              <div className="skeleton" style={{ height: 12, width: '70%', margin: '0 auto' }} />
+              <div className="skeleton" style={{ height: 36, width: '50%' }} />
+              <div className="skeleton mt-sm" style={{ height: 12, width: '70%' }} />
             </div>
           ))}
         </div>
@@ -69,7 +69,7 @@ export default function Dashboard() {
   if (!stats || stats.totalWorkouts === 0) {
     return (
       <div>
-        <h2 style={{ marginBottom: 24 }}>{t('dashboard.title')}</h2>
+        <h2 className="mb-lg">{t('dashboard.title')}</h2>
 
         {/* Hero CTA even on empty state */}
         <Link to="/app/workout" className="hero-card">
@@ -78,8 +78,8 @@ export default function Dashboard() {
         </Link>
 
         <div className="empty-state">
-          <p style={{ fontSize: '0.9375rem' }}>{t('dashboard.noData')}</p>
-          <Link to="/app/workout" className="btn btn-primary" style={{ display: 'inline-flex', width: 'auto', padding: '10px 24px', marginTop: 8 }}>
+          <p>{t('dashboard.noData')}</p>
+          <Link to="/app/workout" className="btn btn-primary" style={{ width: 'auto' }}>
             {t('workout.start')}
           </Link>
         </div>
@@ -157,7 +157,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>{t('dashboard.title')}</h2>
+      <h2 className="mb-md">{t('dashboard.title')}</h2>
 
       {error && <div className="error-toast">{error}</div>}
 
@@ -183,7 +183,7 @@ export default function Dashboard() {
       {weightData && (
         <div className="card">
           <label className="label">{t('dashboard.weightChart')}</label>
-          <div style={{ height: 180, marginTop: 8 }}>
+          <div className="chart-sm">
             <Line data={weightData} options={weightChartOptions} />
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function Dashboard() {
       {repsData && (
         <div className="card">
           <label className="label">{t('dashboard.repsChart')}</label>
-          <div style={{ height: 200, marginTop: 8 }}>
+          <div className="chart-md">
             <Line data={repsData} options={repsLegendOptions} />
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function Dashboard() {
       {diffData && (
         <div className="card">
           <label className="label">{t('dashboard.difficultyChart')}</label>
-          <div style={{ height: 180, marginTop: 8 }}>
+          <div className="chart-sm">
             <Bar
               data={diffData}
               options={diffChartOptions}
@@ -213,8 +213,8 @@ export default function Dashboard() {
       )}
 
       {/* History link */}
-      <div style={{ textAlign: 'center', marginTop: 8 }}>
-        <Link to="/app/history" className="btn btn-ghost" style={{ fontSize: '0.8125rem' }}>
+      <div className="text-center mt-sm">
+        <Link to="/app/history" className="btn btn-ghost">
           {t('dashboard.viewHistory')} {"\u2192"}
         </Link>
       </div>

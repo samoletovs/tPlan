@@ -195,8 +195,14 @@
     "levels": "levels",
     "progressionRules": "Progression Rules",
     "progressionDesc": "+{{increment}} reps after {{threshold}} consecutive easy sessions. Level up when max reps reached.",
-    "saveProgram": "Save Program",
-    "tryAnother": "Try Another File"
+    "saveProgram": "Save program",
+    "tryAnother": "Try another file",
+    "editExercise": "Edit",
+    "removeExercise": "Remove",
+    "reps": "Reps",
+    "sets": "Sets",
+    "exerciseName": "Exercise name",
+    "noExercises": "No exercises. At least one is required to save."
   },
   "schedule": {
     "title": "Weekly Schedule",

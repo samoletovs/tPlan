@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { extractProgramFromText, createProgram } from '../services/api';
-import type { Program, ProgramExercise, ProgramLevel, ProgressionRules } from '../types';
+import type { Program, ProgramExercise, ProgramLevel, ProgressionRules, ExtractionResult } from '../types';
 
 type Step = 'upload' | 'extracting' | 'review' | 'saving';
 
@@ -27,6 +27,8 @@ export default function UploadProgram() {
   const [editName, setEditName] = useState('');
   const [editDesc, setEditDesc] = useState('');
   const [editType, setEditType] = useState<'calisthenics' | 'weights' | 'custom'>('custom');
+  const [editExercises, setEditExercises] = useState<ProgramExercise[]>([]);
+  const [editingExIdx, setEditingExIdx] = useState<number | null>(null);
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -48,6 +50,18 @@ export default function UploadProgram() {
       return;
     }
 
+    function applyExtractionResult(result: ExtractionResult) {
+      setProgram(result.program);
+      setConfidence(result.confidence);
+      setWarnings(result.warnings);
+      setEditName(result.program.name || fileName);
+      setEditDesc(result.program.description || '');
+      setEditType(result.program.type || 'custom');
+      setEditExercises([...result.program.exercises]);
+      setEditingExIdx(null);
+      setStep('review');
+    }
+
     // Read file text
     let text: string;
     try {
@@ -60,13 +74,7 @@ export default function UploadProgram() {
         setStep('extracting');
         try {
           const result = await extractProgramFromText(base64, file.name);
-          setProgram(result.program);
-          setConfidence(result.confidence);
-          setWarnings(result.warnings);
-          setEditName(result.program.name || file.name);
-          setEditDesc(result.program.description || '');
-          setEditType(result.program.type || 'custom');
-          setStep('review');
+          applyExtractionResult(result);
         } catch (err: unknown) {
           const msg = err instanceof Error ? err.message : 'Extraction failed';
           setError(msg);
@@ -89,13 +97,7 @@ export default function UploadProgram() {
     setStep('extracting');
     try {
       const result = await extractProgramFromText(text, file.name);
-      setProgram(result.program);
-      setConfidence(result.confidence);
-      setWarnings(result.warnings);
-      setEditName(result.program.name || file.name);
-      setEditDesc(result.program.description || '');
-      setEditType(result.program.type || 'custom');
-      setStep('review');
+      applyExtractionResult(result);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Extraction failed';
       setError(msg);
@@ -114,6 +116,7 @@ export default function UploadProgram() {
         name: editName,
         description: editDesc,
         type: editType,
+        exercises: editExercises,
       };
       await createProgram(toSave);
       navigate('/app/programs');
@@ -169,6 +172,7 @@ export default function UploadProgram() {
 
         <button
           className="btn btn-ghost mt-lg"
+          onClick={() => navigate('/app/programs')}
         >
           {t('common.cancel')}
         </button>
@@ -247,28 +251,101 @@ export default function UploadProgram() {
           </div>
         </div>
 
-        {/* Exercises (read-only summary) */}
+        {/* Exercises (editable) */}
         <div className="card">
-          <label className="label">{t('upload.exercises', { count: program.exercises.length })}</label>
-          {program.exercises.map((ex: ProgramExercise, i: number) => {
+          <label className="label">{t('upload.exercises', { count: editExercises.length })}</label>
+          {editExercises.length === 0 && (
+            <p className="text-sm text-tertiary">{t('upload.noExercises')}</p>
+          )}
+          {editExercises.map((ex: ProgramExercise, i: number) => {
             const levelCount = program.levels?.filter((l: ProgramLevel) => l.exerciseId === ex.id).length ?? 0;
+            const isEditingEx = editingExIdx === i;
+
             return (
-              <div key={i} style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                padding: '8px 0', borderBottom: i < program.exercises.length - 1 ? '1px solid var(--border)' : 'none',
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
-                    {ex.name}
+              <div key={ex.id || i} className="exercise-row" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+                <div className="flex-between">
+                  <div>
+                    <div className="font-medium text-primary">{ex.name}</div>
+                    <div className="text-xs text-tertiary">
+                      {ex.type === 'timed' ? t('programs.timedExercise') : `${ex.defaultSets}×${ex.defaultReps}`}
+                      {levelCount > 0 && ` · ${levelCount} ${t('upload.levels')}`}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                    {ex.type === 'timed' ? t('programs.timedExercise') : `${ex.defaultSets}×${ex.defaultReps}`}
-                    {levelCount > 0 && ` · ${levelCount} ${t('upload.levels')}`}
+                  <div className="flex gap-xs">
+                    <button
+                      className="btn btn-ghost"
+                      style={{ width: 'auto', padding: '2px 8px' }}
+                      onClick={() => setEditingExIdx(isEditingEx ? null : i)}
+                      aria-label={t('upload.editExercise')}
+                      aria-expanded={isEditingEx}
+                    >
+                      {isEditingEx ? '✕' : '✎'}
+                    </button>
+                    <button
+                      className="btn btn-ghost text-error"
+                      style={{ width: 'auto', padding: '2px 8px' }}
+                      onClick={() => {
+                        setEditExercises(prev => prev.filter((_, j) => j !== i));
+                        if (editingExIdx === i) setEditingExIdx(null);
+                      }}
+                      aria-label={t('upload.removeExercise')}
+                    >
+                      −
+                    </button>
                   </div>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                  {ex.slots.join(', ')}
-                </div>
+
+                {isEditingEx && (
+                  <div className="mt-sm" style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8, alignItems: 'end' }}>
+                    <div>
+                      <label className="label">{t('upload.exerciseName')}</label>
+                      <input
+                        className="input"
+                        value={ex.name}
+                        onChange={e => {
+                          const updated = [...editExercises];
+                          updated[i] = { ...updated[i], name: e.target.value };
+                          setEditExercises(updated);
+                        }}
+                        aria-label={t('upload.exerciseName')}
+                      />
+                    </div>
+                    <div>
+                      <label className="label">{t('upload.sets')}</label>
+                      <input
+                        className="input"
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={ex.defaultSets}
+                        onChange={e => {
+                          const updated = [...editExercises];
+                          updated[i] = { ...updated[i], defaultSets: parseInt(e.target.value) || 1 };
+                          setEditExercises(updated);
+                        }}
+                        style={{ width: 60 }}
+                        aria-label={t('upload.sets')}
+                      />
+                    </div>
+                    <div>
+                      <label className="label">{t('upload.reps')}</label>
+                      <input
+                        className="input"
+                        type="number"
+                        min={1}
+                        max={999}
+                        value={ex.defaultReps}
+                        onChange={e => {
+                          const updated = [...editExercises];
+                          updated[i] = { ...updated[i], defaultReps: parseInt(e.target.value) || 1 };
+                          setEditExercises(updated);
+                        }}
+                        style={{ width: 60 }}
+                        aria-label={t('upload.reps')}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -277,7 +354,7 @@ export default function UploadProgram() {
         {/* Progression Rules */}
         <div className="card">
           <label className="label">{t('upload.progressionRules')}</label>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-body)' }}>
+          <div className="text-sm text-body">
             {t('upload.progressionDesc', {
               increment: (program.progressionRules as ProgressionRules)?.repsIncrement ?? 2,
               threshold: (program.progressionRules as ProgressionRules)?.consecutiveEasyThreshold ?? 2,
@@ -294,7 +371,7 @@ export default function UploadProgram() {
           <button
             className="btn btn-primary"
             onClick={handleSave}
-            disabled={step === 'saving' || !editName.trim()}
+            disabled={step === 'saving' || !editName.trim() || editExercises.length === 0}
           >
             {step === 'saving' ? t('common.saving') : t('upload.saveProgram')}
           </button>
