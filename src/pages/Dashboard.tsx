@@ -177,6 +177,14 @@ export default function Dashboard() {
             <div className="stat-label">{s.label}</div>
           </div>
         ))}
+        <Link to="/app/programs" className="stat-card" style={{ textDecoration: 'none', cursor: 'pointer' }}>
+          <div className="stat-value" style={{ fontSize: '1.25rem' }}>📖</div>
+          <div className="stat-label">{t('programs.title')}</div>
+        </Link>
+        <Link to="/app/schedule" className="stat-card" style={{ textDecoration: 'none', cursor: 'pointer' }}>
+          <div className="stat-value" style={{ fontSize: '1.25rem' }}>📅</div>
+          <div className="stat-label">{t('schedule.title')}</div>
+        </Link>
       </div>
 
       {/* Weight chart */}
