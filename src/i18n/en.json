@@ -189,13 +189,13 @@
     "exerciseCount": "{{count}} exercises",
     "timedExercise": "Timed hold",
     "progressionRule": "+{{reps}} reps after {{threshold}} easy sessions",
-    "uploadBook": "Upload Book",
+    "uploadBook": "Upload Program",
     "delete": "Delete Program",
     "confirmDelete": "Confirm Delete"
   },
   "upload": {
-    "title": "Upload Training Book",
-    "description": "Upload a training methodology book or program. AI will extract exercises, levels, and progression rules — creating a personalized coach from the content.",
+    "title": "Upload Program",
+    "description": "Upload a training book, PDF, coach notes, or any program description. AI will extract exercises, levels, and progression rules.",
     "dropzone": "Drop a file or click to select",
     "formats": ".txt, .md, and .pdf files supported",
     "invalidType": "Unsupported file type. Use .txt, .md, or .pdf.",

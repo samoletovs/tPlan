@@ -125,7 +125,7 @@ app.http('createProgram', {
   },
 });
 
-// DELETE /api/programs/:id — delete a user's custom program
+// DELETE /api/programs/:id — delete a program (user's own or global)
 app.http('deleteProgram', {
   methods: ['DELETE'],
   route: 'programs/{id}',
@@ -138,14 +138,21 @@ app.http('deleteProgram', {
 
     const table = getTable('tplanPrograms');
 
-    // Only allow deleting user's own programs (not global)
-    try {
-      await table.getEntity(userId, id);
-    } catch {
-      return { status: 404, jsonBody: { error: 'Program not found or not owned by you' } };
+    // Try user's own programs first, then global
+    let deleted = false;
+    for (const pk of [userId, 'global']) {
+      try {
+        await table.getEntity(pk, id);
+        await table.deleteEntity(pk, id);
+        deleted = true;
+        break;
+      } catch { continue; }
     }
 
-    await table.deleteEntity(userId, id);
+    if (!deleted) {
+      return { status: 404, jsonBody: { error: 'Program not found' } };
+    }
+
     return { status: 200, jsonBody: { deleted: true } };
   },
 });

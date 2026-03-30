@@ -189,27 +189,26 @@ export default function Programs() {
                     {t('programs.progressionRule', { reps: program.progressionRules.repsIncrement, threshold: program.progressionRules.consecutiveEasyThreshold })}
                   </span>
                 </div>
-                {(program as Program & { owner?: string }).owner !== 'global' && (
-                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                {/* Delete button for all programs */}
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button
+                    className="btn btn-ghost"
+                    style={{ flex: 1, color: confirmDelete === program.id ? 'var(--bg-card)' : 'var(--error)', fontSize: '0.8125rem', background: confirmDelete === program.id ? 'var(--error)' : undefined }}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
+                    disabled={deleting === program.id}
+                  >
+                    {deleting === program.id ? t('common.saving') : confirmDelete === program.id ? t('programs.confirmDelete') : t('programs.delete')}
+                  </button>
+                  {confirmDelete === program.id && (
                     <button
                       className="btn btn-ghost"
-                      style={{ flex: 1, color: confirmDelete === program.id ? 'var(--bg-card)' : 'var(--error)', fontSize: '0.8125rem', background: confirmDelete === program.id ? 'var(--error)' : undefined }}
-                      onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
-                      disabled={deleting === program.id}
+                      style={{ flex: 1, fontSize: '0.8125rem' }}
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(null); }}
                     >
-                      {deleting === program.id ? t('common.saving') : confirmDelete === program.id ? t('programs.confirmDelete') : t('programs.delete')}
+                      {t('common.cancel')}
                     </button>
-                    {confirmDelete === program.id && (
-                      <button
-                        className="btn btn-ghost"
-                        style={{ flex: 1, fontSize: '0.8125rem' }}
-                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(null); }}
-                      >
-                        {t('common.cancel')}
-                      </button>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </div>
