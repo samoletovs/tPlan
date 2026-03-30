@@ -33,11 +33,11 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('dashboard.title')}</h2>
+        <h2 style={{ marginBottom: 24 }}>{t('dashboard.title')}</h2>
         <div className="stats-grid">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(4)].map((_, i) => (
             <div key={i} className="stat-card">
-              <div className="skeleton" style={{ height: 32, width: '50%', margin: '0 auto 8px' }} />
+              <div className="skeleton" style={{ height: 36, width: '50%', margin: '0 auto 8px' }} />
               <div className="skeleton" style={{ height: 12, width: '70%', margin: '0 auto' }} />
             </div>
           ))}
@@ -49,9 +49,12 @@ export default function Dashboard() {
   if (!stats || stats.totalWorkouts === 0) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('dashboard.title')}</h2>
+        <h2 style={{ marginBottom: 24 }}>{t('dashboard.title')}</h2>
         <div className="empty-state">
           <p>{t('dashboard.noData')}</p>
+          <Link to="/app/workout" className="btn btn-primary" style={{ display: 'inline-flex', width: 'auto', padding: '10px 24px', marginTop: 8 }}>
+            {t('workout.start')}
+          </Link>
         </div>
       </div>
     );
@@ -59,9 +62,7 @@ export default function Dashboard() {
 
   const statCards = [
     { value: stats.totalWorkouts, label: t('dashboard.totalWorkouts') },
-    { value: stats.totalMinutes, label: t('dashboard.totalMinutes') },
-    { value: stats.totalSets, label: t('dashboard.totalSets') },
-    { value: stats.totalReps, label: t('dashboard.totalReps') },
+    { value: `${stats.totalMinutes}`, label: t('dashboard.totalMinutes') },
     { value: stats.currentStreak, label: t('dashboard.currentStreak') },
     { value: stats.lastWeight ? `${stats.lastWeight}` : '\u2014', label: t('dashboard.lastWeight') },
   ];
@@ -71,8 +72,8 @@ export default function Dashboard() {
     labels: stats.weightHistory.map(w => new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })),
     datasets: [{
       data: stats.weightHistory.map(w => w.weight),
-      borderColor: '#2563EB', backgroundColor: 'rgba(37, 99, 235, 0.1)',
-      fill: true, tension: 0.3, pointRadius: 3,
+      borderColor: 'var(--accent)', backgroundColor: 'rgba(37, 99, 235, 0.06)',
+      fill: true, tension: 0.3, pointRadius: 3, borderWidth: 2,
     }],
   } : null;
 
@@ -112,7 +113,12 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>{t('dashboard.title')}</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h2>{t('dashboard.title')}</h2>
+        <Link to="/app/workout" className="btn btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '0.8125rem' }}>
+          {t('workout.start')}
+        </Link>
+      </div>
 
       <div className="stats-grid">
         {statCards.map((s, i) => (
@@ -126,8 +132,8 @@ export default function Dashboard() {
       {/* Weight chart */}
       {weightData && (
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>{t('dashboard.weightChart')}</h3>
-          <div style={{ height: 180 }}>
+          <label className="label">{t('dashboard.weightChart')}</label>
+          <div style={{ height: 180, marginTop: 8 }}>
             <Line data={weightData} options={weightChartOptions} />
           </div>
         </div>
@@ -136,8 +142,8 @@ export default function Dashboard() {
       {/* Reps chart */}
       {repsData && (
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>{t('dashboard.repsChart')}</h3>
-          <div style={{ height: 200 }}>
+          <label className="label">{t('dashboard.repsChart')}</label>
+          <div style={{ height: 200, marginTop: 8 }}>
             <Line data={repsData} options={{ ...chartOptions, plugins: { ...chartOptions.plugins, legend: { display: true, position: 'bottom' as const, labels: { boxWidth: 8, font: { size: 10 } } } } }} />
           </div>
         </div>
@@ -146,8 +152,8 @@ export default function Dashboard() {
       {/* Difficulty distribution */}
       {diffData && (
         <div className="card">
-          <h3 style={{ marginBottom: 12 }}>{t('dashboard.difficultyChart')}</h3>
-          <div style={{ height: 180 }}>
+          <label className="label">{t('dashboard.difficultyChart')}</label>
+          <div style={{ height: 180, marginTop: 8 }}>
             <Bar
               data={diffData}
               options={{
@@ -160,10 +166,13 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* View History link */}
-      <div style={{ textAlign: 'center', marginTop: 8 }}>
-        <Link to="/app/history" style={{ fontSize: '0.875rem', color: 'var(--accent)', textDecoration: 'none' }}>
-          {t('dashboard.viewHistory')} →
+      {/* Quick links */}
+      <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <Link to="/app/history" className="btn btn-ghost" style={{ flex: 1, fontSize: '0.8125rem' }}>
+          {t('dashboard.viewHistory')} \u2192
+        </Link>
+        <Link to="/app/schedule" className="btn btn-ghost" style={{ flex: 1, fontSize: '0.8125rem' }}>
+          {t('nav.schedule')} \u2192
         </Link>
       </div>
     </div>

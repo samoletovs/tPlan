@@ -24,6 +24,9 @@
     "hero": "AI Training Program Generator",
     "description": "A research experiment: can AI read training books and generate personalized, progressive workout programs? Upload methodology, track progress, share programs.",
     "cta": "Get Started",
+    "step1": "Upload a book",
+    "step2": "AI builds your plan",
+    "step3": "Train & progress",
     "features": {
       "bookToProgram": "Book → Program",
       "bookToProgramDesc": "AI reads training methodology and extracts exercises, levels, and progression rules",
@@ -32,7 +35,9 @@
       "tracking": "Detailed Tracking",
       "trackingDesc": "Reps, difficulty, weight, notes — everything logged and fed back to the AI",
       "challenges": "Share Programs",
-      "challengesDesc": "Create programs from books and share them with other users"
+      "challengesDesc": "Create programs from books and share them with other users",
+      "dynamic": "Adaptive Interface",
+      "dynamicDesc": "The UI reshapes itself around your methodology — different programs, different experiences"
     }
   },
   "dashboard": {
@@ -182,7 +187,33 @@
     "typeCustom": "Custom",
     "exerciseCount": "{{count}} exercises",
     "timedExercise": "Timed hold",
-    "progressionRule": "+{{reps}} reps after {{threshold}} easy sessions"
+    "progressionRule": "+{{reps}} reps after {{threshold}} easy sessions",
+    "uploadBook": "Upload Book",
+    "delete": "Delete Program"
+  },
+  "upload": {
+    "title": "Upload Training Book",
+    "description": "Upload a training methodology book or program. AI will extract exercises, levels, and progression rules — creating a personalized coach from the content.",
+    "dropzone": "Drop a file or click to select",
+    "formats": ".txt, .md files supported (PDF coming soon)",
+    "invalidType": "Unsupported file type. Use .txt, .md, or .pdf.",
+    "tooLarge": "File too large. Maximum 20 MB.",
+    "pdfNotYet": "PDF support coming soon. For now, copy the text into a .txt file.",
+    "readError": "Could not read the file.",
+    "tooShort": "The file is too short to extract a training program (min 100 characters).",
+    "extracting": "Extracting program...",
+    "extractingDesc": "AI is reading {{fileName}} and identifying exercises, levels, and progression rules. This may take 30–60 seconds.",
+    "review": "Review Extracted Program",
+    "warnings": "Extraction Warnings",
+    "programName": "Program Name",
+    "programDesc": "Description",
+    "programType": "Type",
+    "exercises": "{{count}} exercises extracted",
+    "levels": "levels",
+    "progressionRules": "Progression Rules",
+    "progressionDesc": "+{{increment}} reps after {{threshold}} consecutive easy sessions. Level up when max reps reached.",
+    "saveProgram": "Save Program",
+    "tryAnother": "Try Another File"
   },
   "schedule": {
     "title": "Weekly Schedule",

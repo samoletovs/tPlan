@@ -53,7 +53,7 @@ export default function Schedule() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('schedule.title')}</h2>
+        <h2 style={{ marginBottom: 24 }}>{t('schedule.title')}</h2>
         {[...Array(7)].map((_, i) => (
           <div key={i} className="skeleton" style={{ height: 56, marginBottom: 8 }} />
         ))}
@@ -64,7 +64,7 @@ export default function Schedule() {
   if (!schedule) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('schedule.title')}</h2>
+        <h2 style={{ marginBottom: 24 }}>{t('schedule.title')}</h2>
         <div className="empty-state">
           <p>{t('schedule.noSchedule')}</p>
         </div>
@@ -76,7 +76,7 @@ export default function Schedule() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>{t('schedule.title')}</h2>
+      <h2 style={{ marginBottom: 24 }}>{t('schedule.title')}</h2>
 
       {saving && (
         <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 8, textAlign: 'center' }}>

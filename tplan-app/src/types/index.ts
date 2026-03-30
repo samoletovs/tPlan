@@ -248,6 +248,24 @@ export interface ClientPrincipal {
   claims: { typ: string; val: string }[];
 }
 
+// ===== Extraction (Phase 3) =====
+export interface ExtractionRequest {
+  text: string;
+  fileName: string;
+}
+
+export interface ExtractionResult {
+  program: Omit<Program, 'id' | 'createdAt'>;
+  confidence: number;
+  warnings: string[];
+}
+
+// ===== Generic API wrapper =====
+export interface ApiResponse<T = void> {
+  data?: T;
+  error?: string;
+}
+
 // ===== API =====
 export interface ApiResponse<T> {
   data?: T;

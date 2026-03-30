@@ -12,6 +12,7 @@ const WorkoutPage = lazy(() => import('./pages/WorkoutPage'));
 const History = lazy(() => import('./pages/History'));
 const Schedule = lazy(() => import('./pages/Schedule'));
 const Programs = lazy(() => import('./pages/Programs'));
+const UploadProgram = lazy(() => import('./pages/UploadProgram'));
 const Profile = lazy(() => import('./pages/Profile'));
 
 export default function App() {
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="history" element={<History />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="programs" element={<Programs />} />
+            <Route path="programs/upload" element={<UploadProgram />} />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

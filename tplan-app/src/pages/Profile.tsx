@@ -7,8 +7,6 @@ import type { Locale, UserPreferences } from '../types';
 const LANGUAGES: { code: Locale; label: string }[] = [
   { code: 'en', label: 'English' },
   { code: 'ru', label: 'Русский' },
-  { code: 'lv', label: 'Latviešu' },
-  { code: 'es', label: 'Español' },
 ];
 
 const DIFFICULTIES = ['easy', 'normal', 'hard'] as const;
@@ -58,7 +56,7 @@ export default function Profile() {
   if (!user) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('profile.title')}</h2>
+        <h2 style={{ marginBottom: 24 }}>{t('profile.title')}</h2>
         <div className="empty-state">
           <p>{t('common.loading')}</p>
         </div>
@@ -68,7 +66,7 @@ export default function Profile() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>{t('profile.title')}</h2>
+      <h2 style={{ marginBottom: 24 }}>{t('profile.title')}</h2>
 
       {/* User info */}
       <div className="card">

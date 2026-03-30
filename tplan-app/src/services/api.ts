@@ -1,6 +1,6 @@
 import type {
   User, Workout, WorkoutLog, DashboardStats,
-  ApiResponse, Program, ScheduleData,
+  ApiResponse, Program, ScheduleData, ExtractionResult,
 } from '../types';
 
 const BASE = '/api';
@@ -25,6 +25,15 @@ export const updateUser = (data: Partial<User>) =>
 // ===== Programs =====
 export const getPrograms = () => request<Program[]>('/programs');
 export const getProgram = (id: string) => request<Program>(`/programs/${id}`);
+export const extractProgramFromText = (text: string, fileName: string) =>
+  request<ExtractionResult>('/programs/extract', {
+    method: 'POST',
+    body: JSON.stringify({ text, fileName }),
+  });
+export const createProgram = (program: Omit<Program, 'id' | 'createdAt'>) =>
+  request<Program>('/programs', { method: 'POST', body: JSON.stringify(program) });
+export const deleteProgram = (id: string) =>
+  request<{ deleted: boolean }>(`/programs/${id}`, { method: 'DELETE' });
 
 // ===== Schedule =====
 export const getSchedule = () => request<ScheduleData>('/schedule');
