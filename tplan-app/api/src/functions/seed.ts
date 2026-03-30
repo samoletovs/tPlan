@@ -24,7 +24,9 @@ const SEED_PROGRAMS = [
       pushups: { level: 5, sets: 2, reps: 11, consecutiveEasy: 0 },
       legRaises: { level: 5, sets: 2, reps: 5, consecutiveEasy: 0 },
       squats: { level: 5, sets: 2, reps: 11, consecutiveEasy: 0 },
+      pullups: { level: 1, sets: 2, reps: 5, consecutiveEasy: 0 },
       bridges: { level: 1, sets: 2, reps: 10, consecutiveEasy: 0 },
+      'handstand-pushups': { level: 1, sets: 2, reps: 5, consecutiveEasy: 0 },
       plank: { level: 1, sets: 1, reps: 60, durationSec: 60, consecutiveEasy: 0 },
     },
   },
@@ -115,26 +117,21 @@ app.http('seedUser', {
 async function seedGlobalPrograms(): Promise<void> {
   const table = getTable('tplanPrograms');
 
-  // Convict Conditioning
-  try {
-    await table.getEntity('global', CC_PROGRAM.id);
-  } catch {
-    // Doesn't exist — create it
-    await table.upsertEntity({
-      partitionKey: 'global',
-      rowKey: CC_PROGRAM.id,
-      name: CC_PROGRAM.name,
-      description: CC_PROGRAM.description,
-      type: CC_PROGRAM.type,
-      source: CC_PROGRAM.source,
-      exercises: JSON.stringify(CC_PROGRAM.exercises),
-      levels: JSON.stringify(CC_PROGRAM.levels),
-      progressionRules: JSON.stringify(CC_PROGRAM.progressionRules),
-      trainingDays: JSON.stringify(CC_PROGRAM.trainingDays),
-      defaultSchedule: JSON.stringify(CC_PROGRAM.defaultSchedule),
-      createdAt: new Date().toISOString(),
-    }, 'Replace');
-  }
+  // Convict Conditioning — always upsert to keep exercises/levels current
+  await table.upsertEntity({
+    partitionKey: 'global',
+    rowKey: CC_PROGRAM.id,
+    name: CC_PROGRAM.name,
+    description: CC_PROGRAM.description,
+    type: CC_PROGRAM.type,
+    source: CC_PROGRAM.source,
+    exercises: JSON.stringify(CC_PROGRAM.exercises),
+    levels: JSON.stringify(CC_PROGRAM.levels),
+    progressionRules: JSON.stringify(CC_PROGRAM.progressionRules),
+    trainingDays: JSON.stringify(CC_PROGRAM.trainingDays),
+    defaultSchedule: JSON.stringify(CC_PROGRAM.defaultSchedule),
+    createdAt: new Date().toISOString(),
+  }, 'Replace');
 }
 
 // Remap migrated logs from 'migrate-pending' to real userId

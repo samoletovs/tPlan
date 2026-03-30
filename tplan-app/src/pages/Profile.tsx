@@ -50,7 +50,6 @@ export default function Profile() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  const levels = user?.currentLevels;
   const prefs = user?.preferences;
 
   if (!user) {
@@ -107,41 +106,6 @@ export default function Profile() {
           </div>
         )}
       </div>
-
-      {/* Calisthenics Levels */}
-      {levels && (
-        <div className="card">
-          <label className="label">{t('profile.calisthenicsLevels')}</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>
-            <LevelRow label={t('progression.pushups')} level={levels.pushups.level} sets={levels.pushups.sets} reps={levels.pushups.reps} />
-            <LevelRow label={t('progression.legRaises')} level={levels.legRaises.level} sets={levels.legRaises.sets} reps={levels.legRaises.reps} />
-            <LevelRow label={t('progression.squats')} level={levels.squats.level} sets={levels.squats.sets} reps={levels.squats.reps} />
-            <LevelRow label={t('progression.bridges')} level={levels.bridges.level} sets={levels.bridges.sets} reps={levels.bridges.reps} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-              <span style={{ color: 'var(--text-body)' }}>{t('progression.plank')}</span>
-              <span style={{ color: 'var(--text-secondary)' }}>{levels.plank.durationSec}s</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Dumbbell Levels */}
-      {levels?.dumbbells && Object.keys(levels.dumbbells.reps).length > 0 && (
-        <div className="card">
-          <label className="label">{t('profile.dumbbellLevels')}</label>
-          <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: 8 }}>
-            {t('profile.dumbbellWeight', { weight: levels.dumbbells.weightKg })}
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
-            {Object.entries(levels.dumbbells.reps).map(([name, reps]) => (
-              <div key={name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-                <span style={{ color: 'var(--text-body)' }}>{name}</span>
-                <span style={{ color: 'var(--text-secondary)' }}>{reps} reps</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Preferences */}
       {prefs && (
@@ -244,14 +208,4 @@ export default function Profile() {
   );
 }
 
-function LevelRow({ label, level, sets, reps }: { label: string; level: number; sets: number; reps: number }) {
-  const { t } = useTranslation();
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-      <span style={{ color: 'var(--text-body)' }}>{label}</span>
-      <span style={{ color: 'var(--text-secondary)' }}>
-        {t('progression.level', { n: level })} · {sets}×{reps}
-      </span>
-    </div>
-  );
-}
+
