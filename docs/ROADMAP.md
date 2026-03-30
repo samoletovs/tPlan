@@ -5,22 +5,28 @@
 
 ## Current State
 
-Phase 2 web app is **~70% complete** for personal use:
+Phase 2 web app is **~85% complete** for personal use:
 
 | Area | Status | Notes |
 |------|--------|-------|
 | Core workout loop | ✅ Working | Generate → train → feedback → progress |
-| Pages | 7/9 functional | Challenges stub, no leaderboard |
-| API | 10/13 endpoints | Dashboard partial, feedback partial, challenges missing |
-| Progression logic | ✅ Complete | Deterministic, pure functions |
+| Pages | 8/8 functional | Challenges removed (anti-vision), all pages working |
+| API | 10/13 endpoints | Dashboard complete, feedback via GitHub Issues |
+| Progression logic | ✅ Complete + tested | 33 unit tests, deterministic pure functions |
 | Auth | ✅ Working | Google OAuth via SWA |
-| i18n | ✅ 4 languages | EN, RU, LV, ES |
+| i18n | ✅ 2 languages | EN + RU (LV/ES removed — focus on active languages) |
 | Deployment | ✅ Working | GitHub Actions → tplan.naurolabs.com |
-| Tests | ❌ Zero | vitest configured, no test files |
-| Design | ⚠️ Functional | Not yet aligned with vision (Strava/Apple Fitness aesthetic) |
-| Programs | 3 built-in | Convict Conditioning A/B, Dumbbell Gymnastics |
+| Tests | ✅ 47 tests | Progression (33) + API client (14) — vitest |
+| Design | ✅ Aligned | CSS design system with utility classes, Ive principles |
+| Accessibility | ✅ Fixed | Proper toggle switches, aria labels, keyboard support |
+| Programs | 2 built-in | Convict Conditioning + Dumbbell Gymnastics |
+| Sound/vibration | ✅ Added | Timer completion beep + haptic feedback |
+| Error handling | ✅ Improved | User-visible error toasts, no silent catch |
+| Nav | ✅ Simplified | 4 items: Dashboard, Workout, History, Profile |
 
-**Key gap**: the app works but doesn't feel professional. Design, polish, and reliability need work before it can be used daily as the primary training tool (Phase 2 success criteria).
+**Current focus**: Phase 3 preparation — book upload + AI extraction pipeline.
+
+See [PHASE3-ARCHITECTURE.md](PHASE3-ARCHITECTURE.md) for the technical plan.
 
 ---
 

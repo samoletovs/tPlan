@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ExerciseStep, ExerciseResult, PreviousResult, Difficulty } from '../../types';
+import { timerAlert } from '../../utils/audio';
 
 function fmtTime(s: number) {
   return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
@@ -40,6 +41,7 @@ export default function TimedExerciseStep({ step, previousResults, onComplete }:
           clearInterval(intervalRef.current!);
           setRunning(false);
           setDone(true);
+          timerAlert();
           return 0;
         }
         return prev - 1;
@@ -65,34 +67,28 @@ export default function TimedExerciseStep({ step, previousResults, onComplete }:
     <div className="card active">
       <span className="tag">{t('workout.exercise')}</span>
       <h3>{step.name}</h3>
-      <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 8 }}>
-        {step.meta}
-      </div>
+      <div className="exercise-meta">{step.meta}</div>
 
       {prev && (
-        <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)', marginBottom: 12, padding: '6px 10px', background: 'var(--bg-subtle)', borderRadius: 'var(--radius-sm)' }}>
+        <div className="exercise-prev">
           {t('history.workout')}: {prev.actual}/{prev.planned}s
         </div>
       )}
 
-      <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
-        {step.technique}
-      </div>
+      <div className="exercise-technique">{step.technique}</div>
 
-      <div style={{ textAlign: 'center', margin: '24px 0' }}>
+      <div className="big-number">
         <div className={`timer-display ${cls}`}>
           {done ? `✓ ${fmtTime(totalSec)}` : fmtTime(remaining)}
         </div>
-        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 4 }}>
-          {t('workout.targetSeconds')}
-        </div>
+        <div className="big-number-label">{t('workout.targetSeconds')}</div>
       </div>
 
       <button
-        className={`btn ${running ? 'btn-secondary' : done ? 'btn-ghost' : 'btn-primary'}`}
+        className={`btn ${running ? 'btn-secondary' : done ? 'btn-ghost' : 'btn-primary'} mb-md`}
         onClick={toggleTimer}
         disabled={done}
-        style={{ marginBottom: 16 }}
+        aria-label={done ? t('workout.timerDone') : running ? t('workout.stopTimer') : t('workout.startTimer')}
       >
         {done ? t('workout.timerDone') : running ? t('workout.stopTimer') : t('workout.startTimer')}
       </button>

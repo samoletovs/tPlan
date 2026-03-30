@@ -15,13 +15,16 @@ export default function WorkoutSummary({ workout, results, onSave }: Props) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   async function handleSave() {
     setSaving(true);
+    setError(null);
     try {
       await onSave(bodyWeight ? parseFloat(bodyWeight) : null, notes);
       setSaved(true);
-    } catch {
-      // Save failed
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setSaving(false);
     }
@@ -50,11 +53,9 @@ export default function WorkoutSummary({ workout, results, onSave }: Props) {
 
   return (
     <div>
-      <div style={{ textAlign: 'center', margin: '24px 0' }}>
+      <div className="text-center" style={{ margin: '24px 0' }}>
         <h2>{t('summary.title')}</h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-          {t('summary.subtitle')}
-        </p>
+        <p className="text-secondary">{t('summary.subtitle')}</p>
       </div>
 
       {/* Results table */}
@@ -73,7 +74,7 @@ export default function WorkoutSummary({ workout, results, onSave }: Props) {
                 <tr key={i}>
                   <td>
                     <div>{r.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>{r.set}</div>
+                    <div className="text-xs text-tertiary">{r.set}</div>
                   </td>
                   <td>
                     <span style={{ color: r.actual >= r.planned ? 'var(--success)' : 'var(--error)' }}>
@@ -93,21 +94,20 @@ export default function WorkoutSummary({ workout, results, onSave }: Props) {
       {/* Progression advice */}
       {advice.length > 0 && (
         <div className="card">
-          <h3 style={{ marginBottom: 8 }}>{t('summary.progression')}</h3>
+          <h3 className="mb-sm">{t('summary.progression')}</h3>
           {advice.map((a, i) => (
-            <div key={i} style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', padding: '4px 0' }}>
-              {a}
-            </div>
+            <div key={i} className="advice-item">{a}</div>
           ))}
         </div>
       )}
 
       {/* Weight & Notes */}
       <div className="card">
-        <div style={{ marginBottom: 12 }}>
-          <label className="label">{t('summary.weight')}</label>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="mb-md">
+          <label className="label" htmlFor="weight-input">{t('summary.weight')}</label>
+          <div className="flex gap-sm" style={{ alignItems: 'center' }}>
             <input
+              id="weight-input"
               type="number"
               className="input"
               value={bodyWeight}
@@ -116,21 +116,26 @@ export default function WorkoutSummary({ workout, results, onSave }: Props) {
               min={30}
               max={250}
               step={0.1}
+              aria-label={t('summary.weight')}
             />
-            <span style={{ color: 'var(--text-tertiary)' }}>{t('summary.weightUnit')}</span>
+            <span className="text-tertiary">{t('summary.weightUnit')}</span>
           </div>
         </div>
 
         <div>
-          <label className="label">{t('summary.notes')}</label>
+          <label className="label" htmlFor="notes-input">{t('summary.notes')}</label>
           <textarea
+            id="notes-input"
             className="textarea"
             value={notes}
             onChange={e => setNotes(e.target.value)}
             placeholder={t('summary.notesPlaceholder')}
+            aria-label={t('summary.notes')}
           />
         </div>
       </div>
+
+      {error && <div className="error-toast">{error}</div>}
 
       <button
         className="btn btn-primary"

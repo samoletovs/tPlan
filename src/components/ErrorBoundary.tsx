@@ -1,5 +1,6 @@
 import { Component } from 'react';
 import type { ReactNode, ErrorInfo } from 'react';
+import i18n from '../i18n';
 
 interface Props {
   children: ReactNode;
@@ -26,26 +27,20 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      const t = i18n.t.bind(i18n);
       return (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', minHeight: '60vh', padding: 32, textAlign: 'center',
-        }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 500, color: 'var(--text-primary)', marginBottom: 8 }}>
-            Something went wrong
-          </h2>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 24, maxWidth: 400 }}>
-            {this.state.error?.message || 'An unexpected error occurred.'}
-          </p>
+        <div className="error-boundary">
+          <h2>{t('error.title')}</h2>
+          <p>{this.state.error?.message || t('error.generic')}</p>
           <button
             className="btn btn-secondary"
-            style={{ width: 'auto', padding: '10px 24px' }}
+            style={{ width: 'auto' }}
             onClick={() => {
               this.setState({ hasError: false, error: null });
               window.location.href = '/app';
             }}
           >
-            Return to Dashboard
+            {t('error.returnButton')}
           </button>
         </div>
       );

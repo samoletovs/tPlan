@@ -36,17 +36,15 @@ export default function InlineTimer({ totalSec }: { totalSec: number }) {
   const cls = remaining <= 5 ? 'end' : remaining <= 10 ? 'warn' : '';
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+    <div className="inline-timer">
       <button
-        className="btn btn-secondary"
-        style={{ width: 'auto', padding: '4px 10px', fontSize: '0.75rem' }}
+        className="btn btn-secondary inline-timer-btn"
         onClick={toggle}
+        aria-label={done ? t('workout.timerDone') : running ? t('workout.stopTimer') : t('workout.startTimer')}
       >
         {done ? t('workout.timerDone') : running ? t('workout.stopTimer') : t('workout.startTimer')}
       </button>
-      <span className={cls} style={{
-        fontSize: '0.875rem',
-        fontVariantNumeric: 'tabular-nums',
+      <span className={`inline-timer-value ${cls}`} style={{
         color: done ? 'var(--success)' : remaining <= 5 ? 'var(--error)' : remaining <= 10 ? 'var(--warning)' : 'var(--text-secondary)',
       }}>
         {done ? '✓' : fmtTime(remaining)}

@@ -34,13 +34,7 @@ export default function FeedbackButton() {
     return (
       <button
         onClick={() => setOpen(true)}
-        style={{
-          position: 'fixed', bottom: 72, right: 16, zIndex: 60,
-          width: 44, height: 44, borderRadius: '50%', border: '1px solid var(--border)',
-          background: 'var(--bg-card)', boxShadow: 'var(--shadow-md)',
-          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.125rem', color: 'var(--text-secondary)',
-        }}
+        className="feedback-fab"
         aria-label={t('feedback.title')}
       >
         💬
@@ -49,12 +43,8 @@ export default function FeedbackButton() {
   }
 
   return (
-    <div style={{
-      position: 'fixed', bottom: 72, right: 16, zIndex: 60,
-      width: 300, background: 'var(--bg-card)', border: '1px solid var(--border)',
-      borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)', padding: 16,
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+    <div className="feedback-panel">
+      <div className="flex-between" style={{ marginBottom: 12 }}>
         <h3 style={{ fontSize: '0.875rem' }}>{t('feedback.title')}</h3>
         <button className="btn btn-ghost" style={{ width: 'auto', padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => setOpen(false)}>✕</button>
       </div>

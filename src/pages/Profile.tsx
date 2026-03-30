@@ -70,17 +70,13 @@ export default function Profile() {
 
       {/* User info */}
       <div className="card">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="flex gap-md" style={{ alignItems: 'center' }}>
           {user.avatarUrl && (
-            <img
-              src={user.avatarUrl}
-              alt=""
-              style={{ width: 40, height: 40, borderRadius: '50%' }}
-            />
+            <img src={user.avatarUrl} alt="" className="avatar" />
           )}
           <div>
-            <div style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{user.displayName}</div>
-            <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>{user.email}</div>
+            <div className="font-medium text-primary">{user.displayName}</div>
+            <div className="text-sm text-tertiary">{user.email}</div>
           </div>
         </div>
       </div>
@@ -112,19 +108,18 @@ export default function Profile() {
       {prefs && (
         <div className="card">
           <label className="label">{t('profile.preferences')}</label>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
+          <div className="flex-col gap-md mt-sm">
             {/* Default difficulty */}
             <div>
-              <div style={{ fontSize: '0.8125rem', color: 'var(--text-body)', marginBottom: 6 }}>
-                {t('profile.defaultDifficulty')}
-              </div>
-              <div className="diff-row">
+              <div className="pref-sublabel">{t('profile.defaultDifficulty')}</div>
+              <div className="diff-row" role="group" aria-label={t('profile.defaultDifficulty')}>
                 {DIFFICULTIES.map(d => (
                   <button
                     key={d}
                     className={`diff-btn${prefs.defaultDifficulty === d ? ` selected sel-${d}` : ''}`}
                     onClick={() => updatePreference('defaultDifficulty', d)}
                     disabled={saving}
+                    aria-pressed={prefs.defaultDifficulty === d}
                     aria-label={t(`workout.${d}`)}
                   >
                     {t(`workout.${d}`)}
@@ -134,52 +129,38 @@ export default function Profile() {
             </div>
 
             {/* Rest timer toggle */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8125rem', color: 'var(--text-body)' }}>{t('profile.restTimer')}</span>
+            <div className="pref-row">
+              <span className="pref-label">{t('profile.restTimer')}</span>
               <button
+                className={`toggle-track${prefs.restTimerEnabled ? ' on' : ''}`}
                 onClick={() => updatePreference('restTimerEnabled', !prefs.restTimerEnabled)}
                 disabled={saving}
+                role="switch"
+                aria-checked={prefs.restTimerEnabled}
                 aria-label={t('profile.restTimer')}
-                style={{
-                  width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: prefs.restTimerEnabled ? 'var(--accent)' : 'var(--bg-active)',
-                  position: 'relative', transition: 'background 0.2s',
-                }}
               >
-                <span style={{
-                  position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%',
-                  background: '#fff', boxShadow: 'var(--shadow-sm)', transition: 'left 0.2s',
-                  left: prefs.restTimerEnabled ? 22 : 2,
-                }} />
+                <span className="toggle-thumb" />
               </button>
             </div>
 
             {/* Sound toggle */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8125rem', color: 'var(--text-body)' }}>{t('profile.sound')}</span>
+            <div className="pref-row">
+              <span className="pref-label">{t('profile.sound')}</span>
               <button
+                className={`toggle-track${prefs.soundEnabled ? ' on' : ''}`}
                 onClick={() => updatePreference('soundEnabled', !prefs.soundEnabled)}
                 disabled={saving}
+                role="switch"
+                aria-checked={prefs.soundEnabled}
                 aria-label={t('profile.sound')}
-                style={{
-                  width: 44, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer',
-                  background: prefs.soundEnabled ? 'var(--accent)' : 'var(--bg-active)',
-                  position: 'relative', transition: 'background 0.2s',
-                }}
               >
-                <span style={{
-                  position: 'absolute', top: 2, width: 20, height: 20, borderRadius: '50%',
-                  background: '#fff', boxShadow: 'var(--shadow-sm)', transition: 'left 0.2s',
-                  left: prefs.soundEnabled ? 22 : 2,
-                }} />
+                <span className="toggle-thumb" />
               </button>
             </div>
 
             {/* Week starts on */}
             <div>
-              <div style={{ fontSize: '0.8125rem', color: 'var(--text-body)', marginBottom: 6 }}>
-                {t('profile.weekStartsOn')}
-              </div>
+              <div className="pref-sublabel">{t('profile.weekStartsOn')}</div>
               <div className="lang-switcher">
                 <button
                   className={`lang-btn${prefs.weekStartsOn === 'monday' ? ' active' : ''}`}
@@ -201,9 +182,9 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Quick links — Programs & Schedule */}
+      {/* Quick links -- Programs & Schedule */}
       <div className="card">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="flex-col gap-sm">
           <Link to="/app/programs" className="btn btn-secondary" style={{ justifyContent: 'flex-start' }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
               <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />

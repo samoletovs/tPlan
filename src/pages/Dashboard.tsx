@@ -25,11 +25,12 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [todayPrograms, setTodayPrograms] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getDashboard()
       .then(setStats)
-      .catch(() => {})
+      .catch(() => setError(t('error.apiError')))
       .finally(() => setLoading(false));
 
     // Load today's schedule for hero card
@@ -157,6 +158,8 @@ export default function Dashboard() {
   return (
     <div>
       <h2 style={{ marginBottom: 16 }}>{t('dashboard.title')}</h2>
+
+      {error && <div className="error-toast">{error}</div>}
 
       {/* Today's workout hero CTA */}
       <Link to="/app/workout" className="hero-card">

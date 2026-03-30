@@ -231,6 +231,12 @@
     "next": "Next",
     "days": "days"
   },
+  "error": {
+    "title": "Something went wrong",
+    "generic": "An unexpected error occurred.",
+    "returnButton": "Return to dashboard",
+    "apiError": "Could not connect to server. Please try again."
+  },
   "exercises": {
     "pushups-l1": "Wall Push-ups",
     "pushups-l2": "Incline Push-ups",

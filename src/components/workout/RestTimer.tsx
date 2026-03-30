@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { timerAlert } from '../../utils/audio';
 
 function fmtTime(s: number) {
   return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
@@ -21,6 +22,7 @@ export default function RestTimer({ seconds, onComplete, onSkip }: Props) {
       setRemaining(prev => {
         if (prev <= 1) {
           clearInterval(intervalRef.current!);
+          timerAlert();
           setTimeout(onComplete, 100);
           return 0;
         }
@@ -33,12 +35,10 @@ export default function RestTimer({ seconds, onComplete, onSkip }: Props) {
   const cls = remaining <= 5 ? 'end' : remaining <= 15 ? 'warn' : '';
 
   return (
-    <div className="card active" style={{ textAlign: 'center' }}>
-      <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>
-        {t('workout.rest')}
-      </div>
+    <div className="card active text-center">
+      <div className="big-number-label mb-sm">{t('workout.rest')}</div>
       <div className={`timer-display ${cls}`}>{fmtTime(remaining)}</div>
-      <button className="btn btn-ghost" onClick={onSkip} style={{ marginTop: 16 }}>
+      <button className="btn btn-ghost mt-md" onClick={onSkip} aria-label={t('workout.skipRest')}>
         {t('workout.skipRest')} →
       </button>
     </div>

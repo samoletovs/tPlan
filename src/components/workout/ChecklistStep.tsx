@@ -26,10 +26,15 @@ export default function ChecklistStep({ step, onComplete }: Props) {
     <div className="card active">
       <span className="tag">{label}</span>
       <h3>{step.name}</h3>
-      <div style={{ margin: '12px 0' }}>
+      <div className="mt-md mb-md">
         {step.items.map((item, i) => (
           <div key={i} className={`check-item${checked[i] ? ' checked' : ''}`}>
-            <input type="checkbox" checked={checked[i]} onChange={() => toggle(i)} />
+            <input
+              type="checkbox"
+              checked={checked[i]}
+              onChange={() => toggle(i)}
+              aria-label={item.text}
+            />
             <div>
               <span className="ci-text">{item.text}</span>
               {item.desc && <span className="ci-desc">{item.desc}</span>}

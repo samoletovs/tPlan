@@ -9,11 +9,12 @@ export default function History() {
   const [logs, setLogs] = useState<WorkoutLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getLogs()
       .then(setLogs)
-      .catch(() => {})
+      .catch(() => setError(t('error.apiError')))
       .finally(() => setLoading(false));
   }, []);
 
@@ -46,6 +47,8 @@ export default function History() {
     <div>
       <h2 style={{ marginBottom: 24 }}>{t('history.title')}</h2>
 
+      {error && <div className="error-toast">{error}</div>}
+
       {logs.map(log => {
         const isExpanded = expandedId === log.id;
 
@@ -56,23 +59,21 @@ export default function History() {
             style={{ cursor: 'pointer' }}
             onClick={() => setExpandedId(isExpanded ? null : log.id)}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="flex-between">
               <div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text-primary)' }}>
+                <div className="font-medium text-primary" style={{ fontSize: '0.875rem' }}>
                   {log.workout}
                 </div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                <div className="text-xs text-tertiary">
                   {new Date(log.date).toLocaleDateString()} · {t('history.minutes', { count: log.durationMin })}
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div className="flex gap-sm" style={{ alignItems: 'center' }}>
                 {log.streak > 1 && (
-                  <span style={{ fontSize: '0.8125rem' }}>{'\uD83D\uDD25'} {log.streak}</span>
+                  <span className="text-sm">{'🔥'} {log.streak}</span>
                 )}
                 {log.bodyWeightKg && (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-                    {log.bodyWeightKg}kg
-                  </span>
+                  <span className="text-xs text-tertiary">{log.bodyWeightKg}kg</span>
                 )}
                 <svg
                   viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
@@ -119,7 +120,7 @@ export default function History() {
                   </table>
                 </div>
                 {log.notes && (
-                  <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginTop: 8, fontStyle: 'italic' }}>
+                  <div className="text-sm text-secondary" style={{ marginTop: 8, fontStyle: 'italic' }}>
                     {log.notes}
                   </div>
                 )}
@@ -133,20 +134,7 @@ export default function History() {
 }
 
 function DifficultyBadge({ difficulty }: { difficulty: string }) {
-  const colors: Record<string, { bg: string; text: string }> = {
-    easy: { bg: 'var(--success-bg)', text: 'var(--success)' },
-    normal: { bg: 'var(--accent-bg)', text: 'var(--accent)' },
-    hard: { bg: 'var(--error-bg)', text: 'var(--error)' },
-  };
-  const c = colors[difficulty] ?? colors.normal;
   const emoji = difficulty === 'easy' ? '\uD83D\uDE0A' : difficulty === 'hard' ? '\uD83D\uDD25' : '\uD83D\uDCAA';
-  return (
-    <span style={{
-      display: 'inline-block', padding: '1px 6px', borderRadius: 4,
-      fontSize: '0.6875rem', fontWeight: 500,
-      background: c.bg, color: c.text,
-    }}>
-      {emoji}
-    </span>
-  );
+  const cls = difficulty === 'easy' ? 'diff-badge-easy' : difficulty === 'hard' ? 'diff-badge-hard' : 'diff-badge-normal';
+  return <span className={`diff-badge ${cls}`}>{emoji}</span>;
 }

@@ -291,7 +291,7 @@ export default function WorkoutPage() {
         )}
 
         {error && (
-          <div style={{ color: 'var(--error)', fontSize: '0.875rem', margin: '8px 0', padding: '8px 12px', background: 'var(--error-bg)', borderRadius: 8 }}>
+          <div className="error-toast">
             {error}
           </div>
         )}
@@ -307,8 +307,8 @@ export default function WorkoutPage() {
     const exerciseCount = workout.steps.filter(s => s.type === 'exercise').length;
     return (
       <div>
-        <h2 style={{ marginBottom: 4 }}>{workout.title}</h2>
-        <p className="text-sm" style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
+        <h2 className="mb-xs">{workout.title}</h2>
+        <p className="text-sm text-secondary mb-md">
           {workout.day} &middot; {exerciseCount} {t('workout.exercises')} &middot; {workout.steps.length} {t('workout.steps')}
         </p>
         {workout.streak >= 2 && (
@@ -316,7 +316,7 @@ export default function WorkoutPage() {
         )}
 
         {/* Exercise preview */}
-        <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card mb-md">
           <label className="label">{t('workout.exerciseList')}</label>
           {workout.steps.filter(s => s.type === 'exercise').map((step, i) => (
             <div key={i} style={{
@@ -335,7 +335,7 @@ export default function WorkoutPage() {
         <button className="btn btn-primary" onClick={handleStart} aria-label={t('workout.start')}>
           {t('workout.start')}
         </button>
-        <button className="btn btn-ghost" onClick={handleCancel} style={{ marginTop: 8 }} aria-label={t('common.cancel')}>
+        <button className="btn btn-ghost mt-sm" onClick={handleCancel} aria-label={t('common.cancel')}>
           {t('common.cancel')}
         </button>
       </div>
@@ -350,20 +350,17 @@ export default function WorkoutPage() {
   return (
     <div>
       {/* Elapsed timer + cancel */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        marginBottom: 12, fontSize: '0.8125rem', color: 'var(--text-tertiary)',
-      }}>
+      <div className="flex-between text-sm text-tertiary mb-sm">
         <button
-          className="btn-ghost"
+          className="btn btn-ghost"
           onClick={handleCancel}
           aria-label={t('common.cancel')}
-          style={{ padding: '4px 8px', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--text-tertiary)', fontFamily: 'var(--font)' }}
+          style={{ width: 'auto', padding: '4px 8px' }}
         >
           ← {t('common.cancel')}
         </button>
-        <span>{workout.title}</span>
-        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+        <span className="text-sm">{workout.title}</span>
+        <span className="inline-timer-value">
           {'\u23F1'} {String(elapsedMin).padStart(2, '0')}:{String(elapsedSec).padStart(2, '0')}
         </span>
       </div>
