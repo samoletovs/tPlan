@@ -31,6 +31,7 @@ export default function WorkoutPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [elapsed, setElapsed] = useState(0);
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [userNote, setUserNote] = useState('');
 
   useEffect(() => {
     loadWorkout();
@@ -86,7 +87,7 @@ export default function WorkoutPage() {
     setError(null);
     try {
       const today = new Date().toISOString().split('T')[0];
-      const w = await generateWorkout(today, session);
+      const w = await generateWorkout(today, session, userNote || undefined);
       if ('rest' in w && (w as Record<string, unknown>).rest) {
         setError(`${(w as Record<string, unknown>).message || t('workout.restDay')}`);
       } else {
@@ -108,8 +109,10 @@ export default function WorkoutPage() {
     setResults([]);
     setResting(false);
     setElapsed(0);
+    setUserNote('');
     if (elapsedRef.current) clearInterval(elapsedRef.current);
-    loadWorkout();
+    // Don't re-fetch — just show the session picker again
+    // loadWorkout would find the saved workout and re-display it
   }
 
   function handleStart() {
@@ -178,6 +181,18 @@ export default function WorkoutPage() {
     return (
       <div>
         <h2 style={{ marginBottom: 16 }}>{t('workout.title')}</h2>
+
+        {/* User note for workout generation */}
+        <div style={{ marginBottom: 16 }}>
+          <input
+            type="text"
+            className="input"
+            placeholder={t('workout.notePlaceholder')}
+            value={userNote}
+            onChange={e => setUserNote(e.target.value)}
+            style={{ fontSize: '0.8125rem' }}
+          />
+        </div>
 
         {/* Morning session */}
         {morningSlots.length > 0 && (

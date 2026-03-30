@@ -43,10 +43,10 @@ export const updateSchedule = (data: Partial<ScheduleData>) =>
 // ===== Workouts =====
 export const getWorkouts = () => request<Workout[]>('/workouts');
 export const getWorkout = (id: string) => request<Workout>(`/workouts/${id}`);
-export const generateWorkout = (date: string, session?: 'morning' | 'evening') =>
+export const generateWorkout = (date: string, session?: 'morning' | 'evening', userNote?: string) =>
   request<Workout>('/workouts/generate', {
     method: 'POST',
-    body: JSON.stringify({ date, session }),
+    body: JSON.stringify({ date, session, userNote }),
   });
 
 // ===== Logs =====

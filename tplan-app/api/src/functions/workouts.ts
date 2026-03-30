@@ -38,9 +38,10 @@ app.http('generateWorkout', {
     const userId = getUserId(req.headers);
     if (!userId) return { status: 401, jsonBody: { error: 'Unauthorized' } };
 
-    const body = await req.json() as { date: string; session?: 'morning' | 'evening' };
+    const body = await req.json() as { date: string; session?: 'morning' | 'evening'; userNote?: string };
     const date = body.date;
     const session = body.session; // optional: 'morning' or 'evening'
+    const userNote = body.userNote || ''; // user's pre-workout note/adjustment request
     const dayIdx = new Date(date).getDay();
     const dayKey = DAY_KEYS[dayIdx];
 
@@ -172,6 +173,7 @@ app.http('generateWorkout', {
       programIds: todaySlots.map((s: any) => s.programId),
       createdAt: new Date().toISOString(),
       completed: false,
+      userNote: userNote || undefined,
     };
 
     // 7. Try AI enhancement
@@ -287,10 +289,11 @@ function buildCooldown(): any {
 }
 
 async function enhanceWithAI(endpoint: string, key: string, deployment: string, workout: any, user: any) {
+  const userNoteSection = workout.userNote ? `\nUser's note for today: "${workout.userNote}" — take this into consideration in your tips.` : '';
   const prompt = `Add brief motivational coaching tips to this workout. Return JSON with:
 - "motivation": a short motivational message for today
 - "tips": array of strings (one per step, empty string for warmup/cooldown)
-Workout: ${workout.title}, streak: ${workout.streak}, date: ${workout.date}
+Workout: ${workout.title}, streak: ${workout.streak}, date: ${workout.date}${userNoteSection}
 Exercises: ${workout.steps.filter((s: any) => s.type === 'exercise').map((s: any) => `${s.name} ${s.planned} reps`).join(', ')}`;
 
   const res = await fetch(`${endpoint}/openai/deployments/${deployment}/chat/completions?api-version=2024-02-01`, {

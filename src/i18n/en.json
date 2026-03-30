@@ -91,7 +91,8 @@
     "restDay": "Rest day — no workouts scheduled",
     "exercises": "exercises",
     "steps": "steps",
-    "exerciseList": "Exercises"
+    "exerciseList": "Exercises",
+    "notePlaceholder": "Any adjustments? (e.g. skip legs, focus on arms, wrist hurts...)"
   },
   "summary": {
     "title": "Workout Complete!",
