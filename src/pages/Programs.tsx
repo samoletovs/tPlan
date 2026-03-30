@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { getPrograms } from '../services/api';
+import { Link } from 'react-router-dom';
+import { getPrograms, deleteProgram } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { Program } from '../types';
 
@@ -10,6 +11,7 @@ export default function Programs() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     getPrograms()
@@ -18,10 +20,22 @@ export default function Programs() {
       .finally(() => setLoading(false));
   }, []);
 
+  async function handleDelete(id: string) {
+    setDeleting(id);
+    try {
+      await deleteProgram(id);
+      setPrograms(prev => prev.filter(p => p.id !== id));
+    } catch {
+      // silent
+    } finally {
+      setDeleting(null);
+    }
+  }
+
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('programs.title')}</h2>
+        <h2 style={{ marginBottom: 24 }}>{t('programs.title')}</h2>
         {[...Array(2)].map((_, i) => (
           <div key={i} className="skeleton" style={{ height: 120, marginBottom: 12 }} />
         ))}
@@ -32,7 +46,12 @@ export default function Programs() {
   if (programs.length === 0) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('programs.title')}</h2>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+          <h2>{t('programs.title')}</h2>
+          <Link to="/app/programs/upload" className="btn btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '0.8125rem' }}>
+            {t('programs.uploadBook')}
+          </Link>
+        </div>
         <div className="empty-state">
           <p>{t('programs.noPrograms')}</p>
         </div>
@@ -44,7 +63,12 @@ export default function Programs() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>{t('programs.title')}</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h2>{t('programs.title')}</h2>
+        <Link to="/app/programs/upload" className="btn btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '0.8125rem' }}>
+          {t('programs.uploadBook')}
+        </Link>
+      </div>
 
       {programs.map(program => {
         const isExpanded = expandedId === program.id;
@@ -133,6 +157,16 @@ export default function Programs() {
                     {t('programs.progressionRule', { reps: program.progressionRules.repsIncrement, threshold: program.progressionRules.consecutiveEasyThreshold })}
                   </span>
                 </div>
+                {(program as Program & { owner?: string }).owner !== 'global' && (
+                  <button
+                    className="btn btn-ghost"
+                    style={{ marginTop: 12, color: 'var(--error)', fontSize: '0.8125rem' }}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
+                    disabled={deleting === program.id}
+                  >
+                    {deleting === program.id ? t('common.saving') : t('programs.delete')}
+                  </button>
+                )}
               </div>
             )}
           </div>

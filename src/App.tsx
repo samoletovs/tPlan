@@ -9,6 +9,7 @@ import WorkoutPage from './pages/WorkoutPage';
 import History from './pages/History';
 import Schedule from './pages/Schedule';
 import Programs from './pages/Programs';
+import UploadProgram from './pages/UploadProgram';
 import Profile from './pages/Profile';
 
 export default function App() {
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="history" element={<History />} />
             <Route path="schedule" element={<Schedule />} />
             <Route path="programs" element={<Programs />} />
+            <Route path="programs/upload" element={<UploadProgram />} />
             <Route path="profile" element={<Profile />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

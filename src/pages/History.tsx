@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { getLogs } from '../services/api';
 import type { WorkoutLog } from '../types';
 
@@ -19,7 +20,7 @@ export default function History() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('history.title')}</h2>
+        <h2 style={{ marginBottom: 24 }}>{t('history.title')}</h2>
         {[...Array(5)].map((_, i) => (
           <div key={i} className="skeleton" style={{ height: 48, marginBottom: 8 }} />
         ))}
@@ -30,9 +31,12 @@ export default function History() {
   if (logs.length === 0) {
     return (
       <div>
-        <h2 style={{ marginBottom: 16 }}>{t('history.title')}</h2>
+        <h2 style={{ marginBottom: 24 }}>{t('history.title')}</h2>
         <div className="empty-state">
           <p>{t('history.noLogs')}</p>
+          <Link to="/app/workout" className="btn btn-primary" style={{ display: 'inline-flex', width: 'auto', padding: '10px 24px', marginTop: 8 }}>
+            {t('workout.start')}
+          </Link>
         </div>
       </div>
     );
@@ -40,7 +44,7 @@ export default function History() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 16 }}>{t('history.title')}</h2>
+      <h2 style={{ marginBottom: 24 }}>{t('history.title')}</h2>
 
       {logs.map(log => {
         const isExpanded = expandedId === log.id;
