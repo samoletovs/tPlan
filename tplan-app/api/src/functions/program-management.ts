@@ -18,7 +18,8 @@ app.http('extractProgram', {
       return { status: 400, jsonBody: { error: 'Invalid JSON body' } };
     }
 
-    let { text, fileName } = body;
+    let { text } = body;
+    const { fileName } = body;
 
     if (!text || typeof text !== 'string') {
       return { status: 400, jsonBody: { error: 'Missing "text" field — the book content to extract from' } };
