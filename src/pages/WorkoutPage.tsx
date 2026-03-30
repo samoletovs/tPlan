@@ -174,9 +174,13 @@ export default function WorkoutPage() {
   }
 
   if (!workout) {
-    // Group slots into morning (A/B) and evening sessions
-    const morningSlots = todaySlots.filter(s => s.slot !== 'evening');
+    // Group slots by time of day
+    const morningSlots = todaySlots.filter(s => s.slot === 'morning');
+    const daySlots = todaySlots.filter(s => s.slot === 'day');
     const eveningSlots = todaySlots.filter(s => s.slot === 'evening');
+    // Legacy: treat unknown slots (A/B/push_core etc.) as morning
+    const legacySlots = todaySlots.filter(s => !['morning', 'day', 'evening'].includes(s.slot));
+    const allMorning = [...morningSlots, ...legacySlots, ...daySlots];
 
     return (
       <div>
@@ -194,12 +198,12 @@ export default function WorkoutPage() {
           />
         </div>
 
-        {/* Morning session */}
-        {morningSlots.length > 0 && (
+        {/* Morning/Day session */}
+        {allMorning.length > 0 && (
           <div style={{ marginBottom: 16 }}>
             <label className="label">{t('workout.morningSession')}</label>
             <div className="card" style={{ marginBottom: 8 }}>
-              {morningSlots.map((slot, i) => {
+              {allMorning.map((slot, i) => {
                 const program = programs.find(p => p.id === slot.programId);
                 return (
                   <div key={i} style={{

@@ -5,9 +5,12 @@ import type { ScheduleData, Program, DayOfWeek } from '../types';
 
 const DAYS: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
+/** Time-based slots — the user assigns a program to a time of day, not A/B */
+const TIME_SLOTS = ['morning', 'day', 'evening'] as const;
+
 const SLOT_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  A: { bg: 'var(--accent-bg)', border: 'var(--accent)', text: 'var(--accent)' },
-  B: { bg: 'var(--success-bg)', border: 'var(--success)', text: 'var(--success)' },
+  morning: { bg: 'var(--accent-bg)', border: 'var(--accent)', text: 'var(--accent)' },
+  day: { bg: 'var(--success-bg)', border: 'var(--success)', text: 'var(--success)' },
   evening: { bg: 'var(--warning-bg)', border: 'var(--warning)', text: 'var(--warning)' },
 };
 
@@ -130,7 +133,7 @@ export default function Schedule() {
                   ) : (
                     slots.map((s, i) => {
                       const program = programs.find(p => p.id === s.programId);
-                      const colors = SLOT_COLORS[s.slot] ?? SLOT_COLORS.A;
+                      const colors = SLOT_COLORS[s.slot] ?? SLOT_COLORS.morning;
                       return (
                         <span
                           key={i}
@@ -141,7 +144,7 @@ export default function Schedule() {
                             color: colors.text,
                           }}
                         >
-                          {program?.name ? abbreviate(program.name) : s.programId} {s.slot}
+                          {program?.name ? abbreviate(program.name) : s.programId} {t(`schedule.slot.${s.slot}`, { defaultValue: s.slot })}
                         </span>
                       );
                     })
@@ -151,39 +154,36 @@ export default function Schedule() {
 
               {isEditing && (
                 <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-                  {programs.map(program => {
-                    const availableSlots = getAvailableSlots(program);
-                    return (
-                      <div key={program.id} style={{ marginBottom: 8 }}>
-                        <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-body)', marginBottom: 4 }}>
-                          {program.name}
-                        </div>
-                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                          {availableSlots.map(slot => {
-                            const isActive = slots.some(s => s.programId === program.id && s.slot === slot);
-                            const colors = SLOT_COLORS[slot] ?? SLOT_COLORS.A;
-                            return (
-                              <button
-                                key={slot}
-                                onClick={() => handleToggleSlot(day, program.id, slot)}
-                                aria-label={`${program.name} ${slot}`}
-                                style={{
-                                  padding: '4px 12px', borderRadius: 6, fontSize: '0.75rem',
-                                  fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s',
-                                  border: `1px solid ${isActive ? colors.border : 'var(--border)'}`,
-                                  background: isActive ? colors.bg : 'var(--bg-card)',
-                                  color: isActive ? colors.text : 'var(--text-secondary)',
-                                  fontFamily: 'var(--font)',
-                                }}
-                              >
-                                {t(`schedule.slot.${slot}`, { defaultValue: slot.toUpperCase() })}
-                              </button>
-                            );
-                          })}
-                        </div>
+                  {programs.map(program => (
+                    <div key={program.id} style={{ marginBottom: 8 }}>
+                      <div style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--text-body)', marginBottom: 4 }}>
+                        {program.name}
                       </div>
-                    );
-                  })}
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {TIME_SLOTS.map(slot => {
+                          const isActive = slots.some(s => s.programId === program.id && s.slot === slot);
+                          const colors = SLOT_COLORS[slot];
+                          return (
+                            <button
+                              key={slot}
+                              onClick={() => handleToggleSlot(day, program.id, slot)}
+                              aria-label={`${program.name} ${slot}`}
+                              style={{
+                                padding: '4px 12px', borderRadius: 6, fontSize: '0.75rem',
+                                fontWeight: 500, cursor: 'pointer', transition: 'all 0.15s',
+                                border: `1px solid ${isActive ? colors.border : 'var(--border)'}`,
+                                background: isActive ? colors.bg : 'var(--bg-card)',
+                                color: isActive ? colors.text : 'var(--text-secondary)',
+                                fontFamily: 'var(--font)',
+                              }}
+                            >
+                              {t(`schedule.slot.${slot}`)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -202,17 +202,4 @@ function getCurrentDay(): DayOfWeek {
 function abbreviate(name: string): string {
   if (name.length <= 10) return name;
   return name.split(' ').map(w => w[0]).join('').toUpperCase();
-}
-
-function getAvailableSlots(program: Program): string[] {
-  const slots = new Set<string>();
-  for (const ex of program.exercises) {
-    for (const s of ex.slots) {
-      slots.add(s);
-    }
-  }
-  if (slots.size === 0) {
-    slots.add('A');
-  }
-  return Array.from(slots);
 }

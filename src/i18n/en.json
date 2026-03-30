@@ -231,8 +231,8 @@
       "sun": "Sun"
     },
     "slot": {
-      "A": "Day A",
-      "B": "Day B",
+      "morning": "Morning",
+      "day": "Day",
       "evening": "Evening"
     }
   },
