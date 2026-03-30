@@ -116,12 +116,17 @@ h3 { font-size: 1rem; font-weight: 500; color: var(--text-primary); }
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: var(--space-xs) var(--space-sm); border-radius: var(--radius-sm);
   color: var(--text-tertiary); text-decoration: none;
-  font-size: 0.625rem; font-weight: 500; letter-spacing: 0.02em;
+  font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.02em;
   transition: color 0.15s, background 0.15s;
+  position: relative;
 }
-.nav-item svg { width: 22px; height: 22px; }
+.nav-item svg { width: 24px; height: 24px; }
 .nav-item:hover { color: var(--text-secondary); }
-.nav-item.active { color: var(--accent); background: var(--accent-bg); }
+.nav-item.active { color: var(--accent); }
+.nav-item.active::after {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 20px; height: 2px; background: var(--accent); border-radius: 1px;
+}
 
 /* Card */
 .card {
@@ -167,14 +172,14 @@ h3 { font-size: 1rem; font-weight: 500; color: var(--text-primary); }
 
 /* Stats Grid */
 .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-sm); margin-bottom: var(--space-lg); }
-.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-md); text-align: center; }
-.stat-value { font-size: 1.75rem; font-weight: 300; color: var(--text-primary); line-height: 1.2; }
-.stat-label { font-size: 0.6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-top: var(--space-xs); }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--space-md) var(--space-md) 12px; }
+.stat-value { font-size: 2rem; font-weight: 300; color: var(--text-primary); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat-label { font-size: 0.6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin-top: 6px; }
 
 /* Progress Bar */
-.progress-bar { background: var(--bg-subtle); border-radius: 2px; height: 4px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.3s ease; }
-.progress-text { font-size: 0.75rem; color: var(--text-tertiary); text-align: center; margin-top: var(--space-xs); }
+.progress-bar { background: var(--bg-subtle); border-radius: 3px; height: 6px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
+.progress-text { font-size: 0.75rem; color: var(--text-tertiary); text-align: center; margin-top: var(--space-xs); font-variant-numeric: tabular-nums; }
 
 /* Difficulty Buttons */
 .diff-row { display: flex; gap: var(--space-sm); margin: var(--space-sm) 0; }
@@ -219,13 +224,33 @@ h3 { font-size: 1rem; font-weight: 500; color: var(--text-primary); }
 
 /* Landing */
 .landing { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100dvh; padding: var(--space-xl); text-align: center; }
-.landing h1 { font-size: 2rem; font-weight: 600; margin-bottom: var(--space-sm); }
-.landing p { color: var(--text-secondary); max-width: 480px; margin-bottom: var(--space-xl); }
-.lab-badge { display: inline-flex; align-items: center; padding: 4px 12px; background: var(--accent-bg, rgba(13, 150, 104, 0.1)); color: var(--accent, #0D9668); border: 1px solid var(--accent, #0D9668); border-radius: 999px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; margin-bottom: var(--space-md); text-transform: uppercase; }
+.landing h1 { font-size: 2.25rem; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: var(--space-sm); }
+.landing p { color: var(--text-secondary); max-width: 480px; margin-bottom: var(--space-xl); font-size: 1rem; line-height: 1.6; }
+.lab-badge { display: inline-flex; align-items: center; padding: 4px 12px; background: var(--accent-bg); color: var(--accent); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 999px; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; margin-bottom: var(--space-md); text-transform: uppercase; }
 .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-md); width: 100%; max-width: 640px; margin-bottom: var(--space-xl); }
-.feature-card { text-align: left; padding: var(--space-md); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
+.feature-card { text-align: left; padding: var(--space-md); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); transition: box-shadow 0.2s; }
+.feature-card:hover { box-shadow: var(--shadow-md); }
 .feature-card h3 { font-size: 0.875rem; font-weight: 500; margin-bottom: var(--space-xs); }
-.feature-card p { font-size: 0.8125rem; color: var(--text-secondary); margin: 0; }
+.feature-card p { font-size: 0.8125rem; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+
+/* Hero card (Today's Workout CTA) */
+.hero-card {
+  background: var(--accent); color: #fff; border-radius: var(--radius);
+  padding: var(--space-lg) var(--space-md); margin-bottom: var(--space-lg);
+  cursor: pointer; transition: background 0.15s; text-decoration: none; display: block;
+}
+.hero-card:hover { background: var(--accent-hover); }
+.hero-card h3 { color: #fff; font-size: 1.125rem; font-weight: 600; margin-bottom: 4px; }
+.hero-card p { color: rgba(255,255,255,0.85); font-size: 0.8125rem; margin: 0; }
+
+/* Difficulty badge */
+.diff-badge {
+  display: inline-block; padding: 2px 8px; border-radius: var(--radius-xs);
+  font-size: 0.6875rem; font-weight: 500;
+}
+.diff-badge-easy { background: var(--success-bg); color: var(--success); }
+.diff-badge-normal { background: var(--accent-bg); color: var(--accent); }
+.diff-badge-hard { background: var(--error-bg); color: var(--error); }
 
 /* Empty state */
 .empty-state { text-align: center; padding: var(--space-2xl) var(--space-md); color: var(--text-secondary); }

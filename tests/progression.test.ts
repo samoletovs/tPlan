@@ -52,6 +52,32 @@ describe('progression — getProgressedReps', () => {
     expect(result.reps).toBe(10);
     expect(result.consecutiveEasy).toBe(0);
   });
+
+  it('handles multiple consecutive progressions', () => {
+    // Session 1: easy (count=1)
+    let r = getProgressedReps(10, 'easy', 0);
+    expect(r).toEqual({ reps: 10, consecutiveEasy: 1 });
+    // Session 2: easy (count=2 → progress, reset)
+    r = getProgressedReps(r.reps, 'easy', r.consecutiveEasy);
+    expect(r).toEqual({ reps: 12, consecutiveEasy: 0 });
+    // Session 3: easy (count=1)
+    r = getProgressedReps(r.reps, 'easy', r.consecutiveEasy);
+    expect(r).toEqual({ reps: 12, consecutiveEasy: 1 });
+    // Session 4: easy (count=2 → progress again)
+    r = getProgressedReps(r.reps, 'easy', r.consecutiveEasy);
+    expect(r).toEqual({ reps: 14, consecutiveEasy: 0 });
+  });
+
+  it('handles min reps (1 rep)', () => {
+    const result = getProgressedReps(1, 'hard', 0);
+    expect(result.reps).toBe(1);
+  });
+
+  it('handles high consecutive easy count (3+)', () => {
+    const result = getProgressedReps(10, 'easy', 5);
+    expect(result.reps).toBe(12);
+    expect(result.consecutiveEasy).toBe(0);
+  });
 });
 
 describe('progression — getPlankProgression', () => {
@@ -86,6 +112,37 @@ describe('progression — getPlankProgression', () => {
     const result = getPlankProgression(30, 'hard', 1);
     expect(result.durationSec).toBe(30);
     expect(result.consecutiveEasy).toBe(0);
+  });
+
+  it('resets on normal', () => {
+    const result = getPlankProgression(45, 'normal', 1);
+    expect(result.durationSec).toBe(45);
+    expect(result.consecutiveEasy).toBe(0);
+  });
+
+  it('handles non-standard duration gracefully (stays same)', () => {
+    // Duration not in the plank steps array
+    const result = getPlankProgression(50, 'easy', 1);
+    expect(result.durationSec).toBe(50);
+    expect(result.consecutiveEasy).toBe(0);
+  });
+
+  it('progresses through full plank ladder', () => {
+    let state = { durationSec: 30, consecutiveEasy: 1 };
+    state = getPlankProgression(state.durationSec, 'easy', state.consecutiveEasy);
+    expect(state.durationSec).toBe(45);
+    state.consecutiveEasy = 1; // simulate another easy
+    state = getPlankProgression(state.durationSec, 'easy', state.consecutiveEasy);
+    expect(state.durationSec).toBe(60);
+    state.consecutiveEasy = 1;
+    state = getPlankProgression(state.durationSec, 'easy', state.consecutiveEasy);
+    expect(state.durationSec).toBe(90);
+    state.consecutiveEasy = 1;
+    state = getPlankProgression(state.durationSec, 'easy', state.consecutiveEasy);
+    expect(state.durationSec).toBe(120);
+    state.consecutiveEasy = 1;
+    state = getPlankProgression(state.durationSec, 'easy', state.consecutiveEasy);
+    expect(state.durationSec).toBe(120); // stays capped
   });
 });
 
@@ -136,6 +193,45 @@ describe('progression — updateLevels', () => {
     const results: ExerciseResult[] = [result('Push-ups', 'easy')];
     updateLevels(baseLevels, results);
     expect(baseLevels).toEqual(original);
+  });
+
+  it('handles empty results (no changes)', () => {
+    const updated = updateLevels(baseLevels, []);
+    expect(updated).toEqual(baseLevels);
+  });
+
+  it('progresses multiple exercises in one workout', () => {
+    const levels = {
+      ...baseLevels,
+      pushups: { level: 1, sets: 3, reps: 10, consecutiveEasy: 1 },
+      squats: { level: 1, sets: 3, reps: 12, consecutiveEasy: 1 },
+    };
+    const results: ExerciseResult[] = [
+      result('Отжимания', 'easy'),
+      result('Отжимания', 'easy'),
+      result('Приседания', 'easy'),
+      result('Приседания', 'easy'),
+    ];
+    const updated = updateLevels(levels, results);
+    expect(updated.pushups.reps).toBe(12);
+    expect(updated.squats.reps).toBe(14);
+  });
+
+  it('handles mixed difficulty across sets (one hard = overall hard)', () => {
+    const results: ExerciseResult[] = [
+      result('Push-ups', 'easy'),
+      result('Push-ups', 'hard'),
+    ];
+    const updated = updateLevels(baseLevels, results);
+    expect(updated.pushups.reps).toBe(10);
+    expect(updated.pushups.consecutiveEasy).toBe(0);
+  });
+
+  it('handles unrecognized exercise names (no crash)', () => {
+    const results: ExerciseResult[] = [result('Unknown Exercise XYZ', 'easy')];
+    const updated = updateLevels(baseLevels, results);
+    // Should not crash, levels unchanged
+    expect(updated.pushups.reps).toBe(baseLevels.pushups.reps);
   });
 });
 

@@ -8,11 +8,7 @@
     "dashboard": "Dashboard",
     "workout": "Workout",
     "history": "History",
-    "schedule": "Schedule",
-    "programs": "Programs",
-    "challenges": "Challenges",
-    "profile": "Profile",
-    "leaderboard": "Leaderboard"
+    "profile": "Profile"
   },
   "auth": {
     "login": "Sign in with Google",
@@ -34,8 +30,8 @@
       "progressionDesc": "Auto-advances your level based on the book's transition conditions",
       "tracking": "Detailed Tracking",
       "trackingDesc": "Reps, difficulty, weight, notes — everything logged and fed back to the AI",
-      "challenges": "Share Programs",
-      "challengesDesc": "Create programs from books and share them with other users",
+      "programs": "Share programs",
+      "programsDesc": "Create programs from books and share them with other users",
       "dynamic": "Adaptive Interface",
       "dynamicDesc": "The UI reshapes itself around your methodology — different programs, different experiences"
     }
@@ -50,6 +46,10 @@
     "maxStreak": "Max Streak",
     "lastWeight": "Last Weight",
     "noData": "No workouts yet. Start your first workout!",
+    "startCta": "Start today's workout",
+    "scheduledToday": "Scheduled for today",
+    "noSchedule": "No workout scheduled today",
+    "goToSchedule": "Set up schedule",
     "weightChart": "Weight Over Time",
     "repsChart": "Reps Per Exercise",
     "difficultyChart": "Difficulty Distribution",
@@ -118,27 +118,6 @@
     "result": "Result",
     "difficulty": "Difficulty"
   },
-  "challenges": {
-    "title": "Challenges",
-    "active": "Active Challenges",
-    "create": "Create Challenge",
-    "join": "Join Challenge",
-    "streak": "Streak Challenge",
-    "volume": "Volume Challenge",
-    "consistency": "Consistency Challenge",
-    "startDate": "Start Date",
-    "endDate": "End Date",
-    "participants": "Participants",
-    "invite": "Share Invite Link",
-    "noActive": "No active challenges. Create one or join a friend's!"
-  },
-  "leaderboard": {
-    "title": "Leaderboard",
-    "rank": "Rank",
-    "name": "Name",
-    "score": "Score",
-    "trend": "Trend"
-  },
   "profile": {
     "title": "Profile",
     "language": "Language",
@@ -153,8 +132,10 @@
     "weekStartsOn": "Week starts on",
     "monday": "Monday",
     "sunday": "Sunday",
-    "save": "Save Changes",
-    "saved": "Saved!"
+    "save": "Save changes",
+    "saved": "Saved!",
+    "managePrograms": "Programs",
+    "manageSchedule": "Schedule"
   },
   "progression": {
     "pushups": "Push-ups",

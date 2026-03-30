@@ -28,10 +28,10 @@ export default function Landing() {
     <div className="landing">
       <div className="lab-badge">{t('landing.labBadge')}</div>
 
-      <h1 style={{ fontSize: '2.25rem', letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: 12 }}>
+      <h1>
         {t('landing.hero')}
       </h1>
-      <p style={{ fontSize: '1rem', lineHeight: 1.6, maxWidth: 520 }}>
+      <p>
         {t('landing.description')}
       </p>
 

@@ -1,5 +1,5 @@
 // ===== Locale =====
-export type Locale = 'en' | 'ru' | 'lv' | 'es';
+export type Locale = 'en' | 'ru';
 export type LocaleMap = Record<Locale, string>;
 
 // ===== User =====
@@ -207,32 +207,6 @@ export interface ScheduleData {
   weeklySchedule: WeeklySchedule;
   programs: { programId: string; currentLevels: Record<string, LevelProgress> }[];
   updatedAt: string;
-}
-
-// ===== Challenges =====
-export type ChallengeType = 'streak' | 'volume' | 'consistency';
-
-export interface Challenge {
-  id: string;
-  challengeId: string;
-  title: LocaleMap;
-  description: LocaleMap;
-  type: ChallengeType;
-  startDate: string;
-  endDate: string;
-  creatorId: string;
-  participants: string[];
-  rules: { metric: string; goal: number };
-  createdAt: string;
-}
-
-export interface LeaderboardEntry {
-  rank: number;
-  userId: string;
-  displayName: string;
-  avatarUrl?: string;
-  value: number;
-  trend: 'up' | 'down' | 'same';
 }
 
 // ===== Auth =====

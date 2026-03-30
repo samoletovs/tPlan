@@ -3,18 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 import { Line, Bar } from 'react-chartjs-2';
-import { getDashboard } from '../services/api';
-import type { DashboardStats } from '../types';
+import { getDashboard, getSchedule, getPrograms } from '../services/api';
+import type { DashboardStats, ScheduleSlot, Program, DayOfWeek } from '../types';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
+
+const DAY_MAP: DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
 const chartOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: { legend: { display: false }, tooltip: { mode: 'index' as const } },
   scales: {
-    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-    y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 } }, beginAtZero: true },
+    x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#A0A0A0' } },
+    y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 10 }, color: '#A0A0A0' }, beginAtZero: true },
   },
 };
 
@@ -22,12 +24,29 @@ export default function Dashboard() {
   const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [todayPrograms, setTodayPrograms] = useState<string[]>([]);
 
   useEffect(() => {
     getDashboard()
       .then(setStats)
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    // Load today's schedule for hero card
+    Promise.all([
+      getSchedule().catch(() => null),
+      getPrograms().catch(() => []),
+    ]).then(([scheduleData, programs]: [{ weeklySchedule: Record<DayOfWeek, ScheduleSlot[]> } | null, Program[]]) => {
+      if (scheduleData?.weeklySchedule) {
+        const dayKey = DAY_MAP[new Date().getDay()];
+        const slots = scheduleData.weeklySchedule[dayKey] ?? [];
+        const names = slots.map(s => {
+          const p = programs.find(pr => pr.id === s.programId);
+          return p?.name ?? s.programId;
+        });
+        setTodayPrograms([...new Set(names)]);
+      }
+    });
   }, []);
 
   if (loading) {
@@ -50,8 +69,18 @@ export default function Dashboard() {
     return (
       <div>
         <h2 style={{ marginBottom: 24 }}>{t('dashboard.title')}</h2>
+
+        {/* Hero CTA even on empty state */}
+        <Link to="/app/workout" className="hero-card">
+          <h3>{t('dashboard.startCta')}</h3>
+          <p>{todayPrograms.length > 0 ? todayPrograms.join(' + ') : t('dashboard.noSchedule')}</p>
+        </Link>
+
         <div className="empty-state">
-          <p>{t('dashboard.noData')}</p>
+          <p style={{ fontSize: '0.9375rem' }}>{t('dashboard.noData')}</p>
+          <Link to="/app/workout" className="btn btn-primary" style={{ display: 'inline-flex', width: 'auto', padding: '10px 24px', marginTop: 8 }}>
+            {t('workout.start')}
+          </Link>
         </div>
       </div>
     );
@@ -98,6 +127,23 @@ export default function Dashboard() {
   // Reps per exercise chart
   const repsData = stats.repsPerExercise.length > 0 ? buildRepsChart(stats.repsPerExercise) : null;
 
+  const repsLegendOptions = {
+    ...chartOptions,
+    plugins: {
+      ...chartOptions.plugins,
+      legend: { display: true, position: 'bottom' as const, labels: { boxWidth: 8, font: { size: 10, family: 'Inter' }, color: '#787878', padding: 12 } },
+    },
+  };
+
+  const diffChartOptions = {
+    ...chartOptions,
+    scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: true }, y: { ...chartOptions.scales.y, stacked: true } },
+    plugins: {
+      ...chartOptions.plugins,
+      legend: { display: true, position: 'bottom' as const, labels: { boxWidth: 8, font: { size: 10, family: 'Inter' }, color: '#787878', padding: 12 } },
+    },
+  };
+
   // Difficulty distribution chart
   const diffData = stats.difficultyDistribution.length > 0 ? {
     labels: stats.difficultyDistribution.map(d => new Date(d.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })),
@@ -110,7 +156,16 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 24 }}>{t('dashboard.title')}</h2>
+      <h2 style={{ marginBottom: 16 }}>{t('dashboard.title')}</h2>
+
+      {/* Today's workout hero CTA */}
+      <Link to="/app/workout" className="hero-card">
+        <h3>{t('dashboard.startCta')}</h3>
+        <p>{todayPrograms.length > 0
+          ? `${t('dashboard.scheduledToday')}: ${todayPrograms.join(' + ')}`
+          : t('dashboard.noSchedule')
+        }</p>
+      </Link>
 
       <div className="stats-grid">
         {statCards.map((s, i) => (
@@ -136,7 +191,7 @@ export default function Dashboard() {
         <div className="card">
           <label className="label">{t('dashboard.repsChart')}</label>
           <div style={{ height: 200, marginTop: 8 }}>
-            <Line data={repsData} options={{ ...chartOptions, plugins: { ...chartOptions.plugins, legend: { display: true, position: 'bottom' as const, labels: { boxWidth: 8, font: { size: 10 } } } } }} />
+            <Line data={repsData} options={repsLegendOptions} />
           </div>
         </div>
       )}
@@ -148,11 +203,7 @@ export default function Dashboard() {
           <div style={{ height: 180, marginTop: 8 }}>
             <Bar
               data={diffData}
-              options={{
-                ...chartOptions,
-                scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: true }, y: { ...chartOptions.scales.y, stacked: true } },
-                plugins: { ...chartOptions.plugins, legend: { display: true, position: 'bottom' as const, labels: { boxWidth: 8, font: { size: 10 } } } },
-              }}
+              options={diffChartOptions}
             />
           </div>
         </div>
