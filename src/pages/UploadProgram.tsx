@@ -151,7 +151,9 @@ export default function UploadProgram() {
             }
           }}
           role="button"
+          tabIndex={0}
           aria-label={t('upload.dropzone')}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileRef.current?.click(); } }}
         >
           <div className="dropzone-icon">📄</div>
           <div className="font-medium">{t('upload.dropzone')}</div>
