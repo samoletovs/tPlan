@@ -25,6 +25,13 @@ export default function Programs() {
     }).finally(() => setLoading(false));
   }, []);
 
+  // Auto-reset delete confirmation after 5 seconds
+  useEffect(() => {
+    if (!confirmDelete) return;
+    const timer = setTimeout(() => setConfirmDelete(null), 5000);
+    return () => clearTimeout(timer);
+  }, [confirmDelete]);
+
   async function handleDelete(id: string) {
     if (confirmDelete !== id) {
       setConfirmDelete(id);
@@ -59,9 +66,9 @@ export default function Programs() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 24 }}>{t('programs.title')}</h2>
+        <h2 className="mb-lg">{t('programs.title')}</h2>
         {[...Array(2)].map((_, i) => (
-          <div key={i} className="skeleton" style={{ height: 120, marginBottom: 12 }} />
+          <div key={i} className="skeleton mb-md" style={{ height: 120 }} />
         ))}
       </div>
     );
@@ -70,9 +77,9 @@ export default function Programs() {
   if (programs.length === 0) {
     return (
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div className="flex-between mb-lg">
           <h2>{t('programs.title')}</h2>
-          <Link to="/app/programs/upload" className="btn btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '0.8125rem' }}>
+          <Link to="/app/programs/upload" className="btn btn-primary" style={{ width: 'auto' }}>
             {t('programs.uploadBook')}
           </Link>
         </div>
@@ -95,9 +102,9 @@ export default function Programs() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div className="flex-between mb-lg">
         <h2>{t('programs.title')}</h2>
-        <Link to="/app/programs/upload" className="btn btn-primary" style={{ width: 'auto', padding: '8px 16px', fontSize: '0.8125rem' }}>
+        <Link to="/app/programs/upload" className="btn btn-primary" style={{ width: 'auto' }}>
           {t('programs.uploadBook')}
         </Link>
       </div>
@@ -111,22 +118,22 @@ export default function Programs() {
             : t('programs.typeCustom');
 
         return (
-          <div key={program.id} className="card" style={{ cursor: 'pointer' }}>
+          <div key={program.id} className="card">
             <div
+              className="flex-start cursor-pointer"
               onClick={() => setExpandedId(isExpanded ? null : program.id)}
               role="button"
+              tabIndex={0}
               aria-expanded={isExpanded}
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
+              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(isExpanded ? null : program.id); } }}
             >
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              <div className="flex-1">
+                <div className="flex gap-sm items-center mb-xs">
                   <h3>{program.name}</h3>
-                  <span className="tag" style={{ marginBottom: 0 }}>{typeLabel}</span>
+                  <span className="tag">{typeLabel}</span>
                 </div>
-                <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', margin: 0 }}>
-                  {program.description}
-                </p>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginTop: 8 }}>
+                <p className="text-sm text-secondary">{program.description}</p>
+                <div className="text-xs text-tertiary mt-sm">
                   {t('programs.exerciseCount', { count: program.exercises.length })}
                 </div>
               </div>
@@ -140,7 +147,7 @@ export default function Programs() {
             </div>
 
             {isExpanded && (
-              <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+              <div className="collapse-content">
                 {program.exercises.map(exercise => {
                   const userLevel = getUserLevel(program.id, exercise.id, programLevelsMap, levels);
                   const levelInfo = program.levels.find(
@@ -148,35 +155,29 @@ export default function Programs() {
                   );
 
                   return (
-                    <div
-                      key={exercise.id}
-                      style={{
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                        padding: '8px 0', borderBottom: '1px solid var(--border)',
-                      }}
-                    >
+                    <div key={exercise.id} className="exercise-row">
                       <div>
-                        <div style={{ fontSize: '0.875rem', color: 'var(--text-body)', fontWeight: 500 }}>
+                        <div className="font-medium text-body">
                           {levelInfo?.name ?? exercise.name}
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                        <div className="text-xs text-tertiary">
                           {exercise.type === 'timed' ? t('programs.timedExercise') : `${exercise.tempo} tempo`}
                         </div>
                       </div>
-                      <div style={{ textAlign: 'right' }}>
+                      <div className="text-right">
                         {userLevel ? (
                           <>
-                            <div style={{ fontSize: '0.8125rem', color: 'var(--text-body)' }}>
+                            <div className="text-sm text-body">
                               {exercise.type === 'timed'
                                 ? `${userLevel.reps}s`
                                 : `${userLevel.sets}×${userLevel.reps}`}
                             </div>
-                            <div style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>
+                            <div className="text-xs text-tertiary">
                               {t('progression.level', { n: userLevel.level })}
                             </div>
                           </>
                         ) : (
-                          <div style={{ fontSize: '0.8125rem', color: 'var(--text-tertiary)' }}>
+                          <div className="text-sm text-tertiary">
                             {exercise.defaultSets}×{exercise.defaultReps}
                           </div>
                         )}
@@ -184,16 +185,15 @@ export default function Programs() {
                     </div>
                   );
                 })}
-                <div style={{ textAlign: 'center', paddingTop: 8 }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+                <div className="text-center pt-sm">
+                  <span className="text-xs text-tertiary">
                     {t('programs.progressionRule', { reps: program.progressionRules.repsIncrement, threshold: program.progressionRules.consecutiveEasyThreshold })}
                   </span>
                 </div>
                 {/* Delete button */}
                 <div className="flex gap-sm mt-md">
                   <button
-                    className={`btn ${confirmDelete === program.id ? 'btn-danger' : 'btn-ghost'}`}
-                    style={{ flex: 1, color: confirmDelete !== program.id ? 'var(--error)' : undefined }}
+                    className={`btn flex-1 ${confirmDelete === program.id ? 'btn-danger' : 'btn-ghost text-error'}`}
                     onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
                     disabled={deleting === program.id}
                   >
@@ -201,8 +201,7 @@ export default function Programs() {
                   </button>
                   {confirmDelete === program.id && (
                     <button
-                      className="btn btn-ghost"
-                      style={{ flex: 1 }}
+                      className="btn btn-ghost flex-1"
                       onClick={(e) => { e.stopPropagation(); setConfirmDelete(null); }}
                     >
                       {t('common.cancel')}

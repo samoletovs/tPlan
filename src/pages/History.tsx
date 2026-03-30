@@ -21,9 +21,9 @@ export default function History() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 24 }}>{t('history.title')}</h2>
+        <h2 className="mb-lg">{t('history.title')}</h2>
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="skeleton" style={{ height: 48, marginBottom: 8 }} />
+          <div key={i} className="skeleton mb-sm" style={{ height: 48 }} />
         ))}
       </div>
     );
@@ -32,10 +32,10 @@ export default function History() {
   if (logs.length === 0) {
     return (
       <div>
-        <h2 style={{ marginBottom: 24 }}>{t('history.title')}</h2>
+        <h2 className="mb-lg">{t('history.title')}</h2>
         <div className="empty-state">
           <p>{t('history.noLogs')}</p>
-          <Link to="/app/workout" className="btn btn-primary" style={{ display: 'inline-flex', width: 'auto', padding: '10px 24px', marginTop: 8 }}>
+          <Link to="/app/workout" className="btn btn-primary" style={{ width: 'auto' }}>
             {t('workout.start')}
           </Link>
         </div>
@@ -45,7 +45,7 @@ export default function History() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 24 }}>{t('history.title')}</h2>
+      <h2 className="mb-lg">{t('history.title')}</h2>
 
       {error && <div className="error-toast">{error}</div>}
 
@@ -55,22 +55,21 @@ export default function History() {
         return (
           <div
             key={log.id}
-            className="card"
-            style={{ cursor: 'pointer' }}
+            className="card cursor-pointer"
             onClick={() => setExpandedId(isExpanded ? null : log.id)}
             role="button"
+            tabIndex={0}
             aria-expanded={isExpanded}
+            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpandedId(isExpanded ? null : log.id); } }}
           >
             <div className="flex-between">
               <div>
-                <div className="font-medium text-primary" style={{ fontSize: '0.875rem' }}>
-                  {log.workout}
-                </div>
+                <div className="font-medium text-primary">{log.workout}</div>
                 <div className="text-xs text-tertiary">
                   {new Date(log.date).toLocaleDateString()} · {t('history.minutes', { count: log.durationMin })}
                 </div>
               </div>
-              <div className="flex gap-sm" style={{ alignItems: 'center' }}>
+              <div className="flex gap-sm items-center">
                 {log.streak > 1 && (
                   <span className="text-sm">{'🔥'} {log.streak}</span>
                 )}
@@ -88,30 +87,30 @@ export default function History() {
             </div>
 
             {isExpanded && log.exercises.length > 0 && (
-              <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+              <div className="collapse-content">
                 <div className="table-wrap">
                   <table>
                     <thead>
                       <tr>
                         <th>{t('history.exercise')}</th>
-                        <th style={{ textAlign: 'center' }}>{t('history.result')}</th>
-                        <th style={{ textAlign: 'center' }}>{t('history.difficulty')}</th>
+                        <th className="text-center">{t('history.result')}</th>
+                        <th className="text-center">{t('history.difficulty')}</th>
                       </tr>
                     </thead>
                     <tbody>
                       {log.exercises.map((ex, i) => (
                         <tr key={i}>
                           <td>
-                            <div style={{ fontSize: '0.8125rem' }}>{ex.name}</div>
-                            <div style={{ fontSize: '0.6875rem', color: 'var(--text-tertiary)' }}>{ex.set}</div>
+                            <div className="text-sm">{ex.name}</div>
+                            <div className="text-xs text-tertiary">{ex.set}</div>
                           </td>
-                          <td style={{ textAlign: 'center', fontSize: '0.8125rem' }}>
-                            <span style={{ color: ex.actual >= ex.planned ? 'var(--success)' : 'var(--text-body)' }}>
+                          <td className="text-center">
+                            <span className={ex.actual >= ex.planned ? 'text-success' : 'text-body'}>
                               {ex.actual}
                             </span>
-                            <span style={{ color: 'var(--text-tertiary)' }}>/{ex.planned}</span>
+                            <span className="text-tertiary">/{ex.planned}</span>
                           </td>
-                          <td style={{ textAlign: 'center' }}>
+                          <td className="text-center">
                             <DifficultyBadge difficulty={ex.difficulty} />
                           </td>
                         </tr>
@@ -120,7 +119,7 @@ export default function History() {
                   </table>
                 </div>
                 {log.notes && (
-                  <div className="text-sm text-secondary" style={{ marginTop: 8, fontStyle: 'italic' }}>
+                  <div className="text-sm text-secondary mt-sm note-text">
                     {log.notes}
                   </div>
                 )}

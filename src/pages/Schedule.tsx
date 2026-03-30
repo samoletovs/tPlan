@@ -123,11 +123,12 @@ export default function Schedule() {
               className={`card schedule-day${isToday ? ' today' : ''}`}
             >
               <div
-                className="flex-between"
-                style={{ cursor: 'pointer' }}
+                className="flex-between cursor-pointer"
                 onClick={() => setEditing(isEditing ? null : day)}
                 role="button"
+                tabIndex={0}
                 aria-expanded={isEditing}
+                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditing(isEditing ? null : day); } }}
               >
                 <div className="flex gap-sm" style={{ alignItems: 'center' }}>
                   <span className={`schedule-day-name${isToday ? ' today' : ''}`}>

@@ -66,13 +66,13 @@ export default function Profile() {
 
   return (
     <div>
-      <h2 style={{ marginBottom: 24 }}>{t('profile.title')}</h2>
+      <h2 className="mb-lg">{t('profile.title')}</h2>
 
       {/* User info */}
       <div className="card">
-        <div className="flex gap-md" style={{ alignItems: 'center' }}>
+        <div className="flex gap-md items-center">
           {user.avatarUrl && (
-            <img src={user.avatarUrl} alt="" className="avatar" />
+            <img src={user.avatarUrl} alt={user.displayName} className="avatar" />
           )}
           <div>
             <div className="font-medium text-primary">{user.displayName}</div>
