@@ -43,6 +43,8 @@ export const updateSchedule = (data: Partial<ScheduleData>) =>
 // ===== Workouts =====
 export const getWorkouts = () => request<Workout[]>('/workouts');
 export const getWorkout = (id: string) => request<Workout>(`/workouts/${id}`);
+export const deleteWorkout = (id: string) =>
+  request<{ deleted: boolean }>(`/workouts/${id}`, { method: 'DELETE' });
 export const generateWorkout = (date: string, session?: 'morning' | 'evening', userNote?: string) =>
   request<Workout>('/workouts/generate', {
     method: 'POST',

@@ -190,7 +190,8 @@
     "timedExercise": "Timed hold",
     "progressionRule": "+{{reps}} reps after {{threshold}} easy sessions",
     "uploadBook": "Upload Book",
-    "delete": "Delete Program"
+    "delete": "Delete Program",
+    "confirmDelete": "Confirm Delete"
   },
   "upload": {
     "title": "Upload Training Book",

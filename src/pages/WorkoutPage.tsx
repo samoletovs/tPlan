@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { getWorkouts, getSchedule, getPrograms, generateWorkout, saveLog } from '../services/api';
+import { getWorkouts, getSchedule, getPrograms, generateWorkout, deleteWorkout, saveLog } from '../services/api';
 import type { Workout, WorkoutStep, ExerciseResult, ScheduleSlot, Program, DayOfWeek } from '../types';
 import ChecklistStep from '../components/workout/ChecklistStep';
 import ExerciseStepCard from '../components/workout/ExerciseStepCard';
@@ -102,6 +102,10 @@ export default function WorkoutPage() {
   }
 
   function handleCancel() {
+    // Delete generated workout from DB so it won't reappear on next visit
+    if (workout && !started) {
+      deleteWorkout(workout.id).catch(() => {});
+    }
     setWorkout(null);
     setStarted(false);
     setCompleted(false);
@@ -111,8 +115,6 @@ export default function WorkoutPage() {
     setElapsed(0);
     setUserNote('');
     if (elapsedRef.current) clearInterval(elapsedRef.current);
-    // Don't re-fetch — just show the session picker again
-    // loadWorkout would find the saved workout and re-display it
   }
 
   function handleStart() {

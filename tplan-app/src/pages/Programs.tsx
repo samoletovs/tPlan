@@ -1,33 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getPrograms, getSchedule, deleteProgram } from '../services/api';
+import { getPrograms, deleteProgram, getSchedule, updateSchedule } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import type { Program, ScheduleData, LevelProgress } from '../types';
+import type { Program } from '../types';
 
 export default function Programs() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
-  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([
-      getPrograms().catch(() => [] as Program[]),
-      getSchedule().catch(() => null),
-    ]).then(([progs, sched]) => {
-      setPrograms(progs);
-      setScheduleData(sched);
-    }).finally(() => setLoading(false));
+    getPrograms()
+      .then(setPrograms)
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   async function handleDelete(id: string) {
+    if (confirmDelete !== id) {
+      setConfirmDelete(id);
+      return;
+    }
     setDeleting(id);
+    setConfirmDelete(null);
     try {
       await deleteProgram(id);
+      // Remove program from schedule too
+      try {
+        const schedule = await getSchedule();
+        const ws = schedule.weeklySchedule;
+        let changed = false;
+        for (const day of Object.keys(ws) as Array<keyof typeof ws>) {
+          const before = ws[day].length;
+          ws[day] = ws[day].filter(s => s.programId !== id);
+          if (ws[day].length !== before) changed = true;
+        }
+        if (changed) {
+          await updateSchedule({ weeklySchedule: ws });
+        }
+      } catch { /* schedule cleanup is best-effort */ }
       setPrograms(prev => prev.filter(p => p.id !== id));
     } catch {
       // silent
@@ -64,14 +80,6 @@ export default function Programs() {
   }
 
   const levels = user?.currentLevels;
-
-  // Build per-program levels map from schedule data
-  const programLevelsMap: Record<string, Record<string, LevelProgress>> = {};
-  if (scheduleData?.programs) {
-    for (const p of scheduleData.programs) {
-      programLevelsMap[p.programId] = p.currentLevels;
-    }
-  }
 
   return (
     <div>
@@ -122,7 +130,7 @@ export default function Programs() {
             {isExpanded && (
               <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
                 {program.exercises.map(exercise => {
-                  const userLevel = getUserLevel(program.id, exercise.id, programLevelsMap, levels);
+                  const userLevel = getUserLevel(program.id, exercise.id, levels);
                   const levelInfo = program.levels.find(
                     l => l.exerciseId === exercise.id && l.level === (userLevel?.level ?? exercise.startLevel)
                   );
@@ -170,14 +178,25 @@ export default function Programs() {
                   </span>
                 </div>
                 {(program as Program & { owner?: string }).owner !== 'global' && (
-                  <button
-                    className="btn btn-ghost"
-                    style={{ marginTop: 12, color: 'var(--error)', fontSize: '0.8125rem' }}
-                    onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
-                    disabled={deleting === program.id}
-                  >
-                    {deleting === program.id ? t('common.saving') : t('programs.delete')}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                    <button
+                      className="btn btn-ghost"
+                      style={{ flex: 1, color: confirmDelete === program.id ? 'var(--bg-card)' : 'var(--error)', fontSize: '0.8125rem', background: confirmDelete === program.id ? 'var(--error)' : undefined }}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
+                      disabled={deleting === program.id}
+                    >
+                      {deleting === program.id ? t('common.saving') : confirmDelete === program.id ? t('programs.confirmDelete') : t('programs.delete')}
+                    </button>
+                    {confirmDelete === program.id && (
+                      <button
+                        className="btn btn-ghost"
+                        style={{ flex: 1, fontSize: '0.8125rem' }}
+                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(null); }}
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -191,27 +210,9 @@ export default function Programs() {
 function getUserLevel(
   programId: string,
   exerciseId: string,
-  programLevelsMap: Record<string, Record<string, LevelProgress>>,
-  legacyLevels: import('../types').CurrentLevels | undefined,
+  levels: import('../types').CurrentLevels | undefined,
 ): { level: number; sets: number; reps: number } | null {
-  // Prefer per-program levels from schedule data
-  const programLevels = programLevelsMap[programId];
-  if (programLevels) {
-    // Try exact exercise ID match
-    const data = programLevels[exerciseId];
-    if (data) {
-      return { level: data.level, sets: data.sets || 1, reps: data.reps };
-    }
-    // Try camelCase variant (e.g. 'leg-raises' -> 'legRaises')
-    const camelId = exerciseId.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
-    const camelData = programLevels[camelId];
-    if (camelData) {
-      return { level: camelData.level, sets: camelData.sets || 1, reps: camelData.reps };
-    }
-  }
-
-  // Fallback to legacy flat user.currentLevels
-  if (!legacyLevels) return null;
+  if (!levels) return null;
 
   if (programId === 'convict-conditioning') {
     const map: Record<string, keyof Omit<import('../types').CurrentLevels, 'dumbbells'>> = {
@@ -224,16 +225,16 @@ function getUserLevel(
     };
     const key = map[exerciseId];
     if (key === 'plank') {
-      return { level: 1, sets: 1, reps: legacyLevels.plank.durationSec };
+      return { level: 1, sets: 1, reps: levels.plank.durationSec };
     }
     if (key) {
-      const p = legacyLevels[key] as import('../types').LevelProgress;
+      const p = levels[key] as import('../types').LevelProgress;
       return { level: p.level, sets: p.sets, reps: p.reps };
     }
   }
 
-  if (programId === 'dumbbell-gymnastics' && legacyLevels.dumbbells) {
-    const reps = legacyLevels.dumbbells.reps[exerciseId];
+  if (programId === 'dumbbell-gymnastics' && levels.dumbbells) {
+    const reps = levels.dumbbells.reps[exerciseId];
     if (reps !== undefined) {
       return { level: 1, sets: 2, reps };
     }

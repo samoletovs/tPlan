@@ -30,6 +30,27 @@ app.http('getWorkouts', {
   },
 });
 
+// DELETE /api/workouts/:id — cancel/delete a generated workout
+app.http('deleteWorkout', {
+  methods: ['DELETE'],
+  route: 'workouts/{id}',
+  handler: async (req: HttpRequest): Promise<HttpResponseInit> => {
+    const userId = getUserId(req.headers);
+    if (!userId) return { status: 401, jsonBody: { error: 'Unauthorized' } };
+
+    const id = req.params.id;
+    if (!id) return { status: 400, jsonBody: { error: 'Missing workout ID' } };
+
+    const table = getTable('tplanWorkouts');
+    try {
+      await table.deleteEntity(userId, id);
+    } catch {
+      return { status: 404, jsonBody: { error: 'Workout not found' } };
+    }
+    return { jsonBody: { deleted: true } };
+  },
+});
+
 // POST /api/workouts/generate — generate today's workout based on schedule + logs
 app.http('generateWorkout', {
   methods: ['POST'],

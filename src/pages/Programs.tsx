@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { getPrograms, deleteProgram } from '../services/api';
+import { getPrograms, deleteProgram, getSchedule, updateSchedule } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { Program } from '../types';
 
@@ -12,6 +12,7 @@ export default function Programs() {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
     getPrograms()
@@ -21,9 +22,28 @@ export default function Programs() {
   }, []);
 
   async function handleDelete(id: string) {
+    if (confirmDelete !== id) {
+      setConfirmDelete(id);
+      return;
+    }
     setDeleting(id);
+    setConfirmDelete(null);
     try {
       await deleteProgram(id);
+      // Remove program from schedule too
+      try {
+        const schedule = await getSchedule();
+        const ws = schedule.weeklySchedule;
+        let changed = false;
+        for (const day of Object.keys(ws) as Array<keyof typeof ws>) {
+          const before = ws[day].length;
+          ws[day] = ws[day].filter(s => s.programId !== id);
+          if (ws[day].length !== before) changed = true;
+        }
+        if (changed) {
+          await updateSchedule({ weeklySchedule: ws });
+        }
+      } catch { /* schedule cleanup is best-effort */ }
       setPrograms(prev => prev.filter(p => p.id !== id));
     } catch {
       // silent
@@ -158,14 +178,25 @@ export default function Programs() {
                   </span>
                 </div>
                 {(program as Program & { owner?: string }).owner !== 'global' && (
-                  <button
-                    className="btn btn-ghost"
-                    style={{ marginTop: 12, color: 'var(--error)', fontSize: '0.8125rem' }}
-                    onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
-                    disabled={deleting === program.id}
-                  >
-                    {deleting === program.id ? t('common.saving') : t('programs.delete')}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                    <button
+                      className="btn btn-ghost"
+                      style={{ flex: 1, color: confirmDelete === program.id ? 'var(--bg-card)' : 'var(--error)', fontSize: '0.8125rem', background: confirmDelete === program.id ? 'var(--error)' : undefined }}
+                      onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
+                      disabled={deleting === program.id}
+                    >
+                      {deleting === program.id ? t('common.saving') : confirmDelete === program.id ? t('programs.confirmDelete') : t('programs.delete')}
+                    </button>
+                    {confirmDelete === program.id && (
+                      <button
+                        className="btn btn-ghost"
+                        style={{ flex: 1, fontSize: '0.8125rem' }}
+                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(null); }}
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )}
