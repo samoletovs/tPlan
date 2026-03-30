@@ -296,7 +296,7 @@ export default function UploadProgram() {
                 </div>
 
                 {isEditingEx && (
-                  <div className="mt-sm" style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 8, alignItems: 'end' }}>
+                  <div className="edit-grid mt-sm">
                     <div>
                       <label className="label">{t('upload.exerciseName')}</label>
                       <input
@@ -313,7 +313,7 @@ export default function UploadProgram() {
                     <div>
                       <label className="label">{t('upload.sets')}</label>
                       <input
-                        className="input"
+                        className="input input-narrow"
                         type="number"
                         min={1}
                         max={10}
@@ -323,14 +323,13 @@ export default function UploadProgram() {
                           updated[i] = { ...updated[i], defaultSets: parseInt(e.target.value) || 1 };
                           setEditExercises(updated);
                         }}
-                        style={{ width: 60 }}
                         aria-label={t('upload.sets')}
                       />
                     </div>
                     <div>
                       <label className="label">{t('upload.reps')}</label>
                       <input
-                        className="input"
+                        className="input input-narrow"
                         type="number"
                         min={1}
                         max={999}
@@ -340,7 +339,6 @@ export default function UploadProgram() {
                           updated[i] = { ...updated[i], defaultReps: parseInt(e.target.value) || 1 };
                           setEditExercises(updated);
                         }}
-                        style={{ width: 60 }}
                         aria-label={t('upload.reps')}
                       />
                     </div>

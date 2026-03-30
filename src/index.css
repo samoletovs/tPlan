@@ -316,7 +316,9 @@ tr:last-child td { border-bottom: none; }
 .flex-start { display: flex; justify-content: space-between; align-items: flex-start; }
 .flex-center { display: flex; align-items: center; justify-content: center; }
 .flex-wrap { flex-wrap: wrap; }
+.flex-end { justify-content: flex-end; }
 .items-center { align-items: center; }
+.items-end { align-items: flex-end; }
 .gap-xs { gap: var(--space-xs); }
 .gap-sm { gap: var(--space-sm); }
 .gap-md { gap: var(--space-md); }
@@ -326,6 +328,23 @@ tr:last-child td { border-bottom: none; }
 
 /* Cursor */
 .cursor-pointer { cursor: pointer; }
+
+/* Width auto (override btn 100%) */
+.w-auto { width: auto; }
+
+/* No text decoration */
+.no-underline { text-decoration: none; }
+
+/* Saved indicator */
+.saved-indicator { font-size: 0.8125rem; color: var(--success); margin-top: var(--space-sm); }
+
+/* Icon sizing */
+.icon-sm { width: 18px; height: 18px; }
+.icon-md { width: 28px; height: 28px; }
+
+/* Exercise edit grid */
+.edit-grid { display: grid; grid-template-columns: 1fr auto auto; gap: var(--space-sm); align-items: end; }
+.input-narrow { width: 60px; }
 
 /* Exercise meta + technique block */
 .exercise-meta { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: var(--space-sm); }

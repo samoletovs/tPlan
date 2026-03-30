@@ -53,7 +53,7 @@ export default function WorkoutSummary({ workout, results, onSave }: Props) {
 
   return (
     <div>
-      <div className="text-center" style={{ margin: '24px 0' }}>
+      <div className="text-center mb-lg mt-lg">
         <h2>{t('summary.title')}</h2>
         <p className="text-secondary">{t('summary.subtitle')}</p>
       </div>
@@ -105,7 +105,7 @@ export default function WorkoutSummary({ workout, results, onSave }: Props) {
       <div className="card">
         <div className="mb-md">
           <label className="label" htmlFor="weight-input">{t('summary.weight')}</label>
-          <div className="flex gap-sm" style={{ alignItems: 'center' }}>
+          <div className="flex gap-sm items-center">
             <input
               id="weight-input"
               type="number"

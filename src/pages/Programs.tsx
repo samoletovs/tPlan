@@ -79,7 +79,7 @@ export default function Programs() {
       <div>
         <div className="flex-between mb-lg">
           <h2>{t('programs.title')}</h2>
-          <Link to="/app/programs/upload" className="btn btn-primary" style={{ width: 'auto' }}>
+          <Link to="/app/programs/upload" className="btn btn-primary w-auto">
             {t('programs.uploadBook')}
           </Link>
         </div>
@@ -104,7 +104,7 @@ export default function Programs() {
     <div>
       <div className="flex-between mb-lg">
         <h2>{t('programs.title')}</h2>
-        <Link to="/app/programs/upload" className="btn btn-primary" style={{ width: 'auto' }}>
+        <Link to="/app/programs/upload" className="btn btn-primary w-auto">
           {t('programs.uploadBook')}
         </Link>
       </div>

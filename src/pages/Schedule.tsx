@@ -80,9 +80,9 @@ export default function Schedule() {
   if (loading) {
     return (
       <div>
-        <h2 style={{ marginBottom: 24 }}>{t('schedule.title')}</h2>
+        <h2 className="mb-lg">{t('schedule.title')}</h2>
         {[...Array(7)].map((_, i) => (
-          <div key={i} className="skeleton" style={{ height: 56, marginBottom: 8 }} />
+          <div key={i} className="skeleton mb-sm" style={{ height: 56 }} />
         ))}
       </div>
     );
@@ -130,7 +130,7 @@ export default function Schedule() {
                 aria-expanded={isEditing}
                 onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setEditing(isEditing ? null : day); } }}
               >
-                <div className="flex gap-sm" style={{ alignItems: 'center' }}>
+                <div className="flex gap-sm items-center">
                   <span className={`schedule-day-name${isToday ? ' today' : ''}`}>
                     {t(`schedule.days.${day}`)}
                   </span>
@@ -140,7 +140,7 @@ export default function Schedule() {
                     </span>
                   )}
                 </div>
-                <div className="flex gap-xs" style={{ flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                <div className="flex gap-xs flex-wrap flex-end">
                   {slots.length === 0 ? (
                     <span className="text-xs text-tertiary">
                       {t('schedule.rest')}
@@ -166,7 +166,7 @@ export default function Schedule() {
                       <div className="text-sm font-medium mb-xs">
                         {program.name}
                       </div>
-                      <div className="flex gap-xs" style={{ flexWrap: 'wrap' }}>
+                      <div className="flex gap-xs flex-wrap">
                         {TIME_SLOTS.map(slot => {
                           const isActive = slots.some(s => s.programId === program.id && s.slot === slot);
                           const activeCls = isActive ? ` active-${slot}` : '';

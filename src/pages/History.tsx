@@ -35,7 +35,7 @@ export default function History() {
         <h2 className="mb-lg">{t('history.title')}</h2>
         <div className="empty-state">
           <p>{t('history.noLogs')}</p>
-          <Link to="/app/workout" className="btn btn-primary" style={{ width: 'auto' }}>
+          <Link to="/app/workout" className="btn btn-primary w-auto">
             {t('workout.start')}
           </Link>
         </div>

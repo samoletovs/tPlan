@@ -33,8 +33,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <h2>{t('error.title')}</h2>
           <p>{this.state.error?.message || t('error.generic')}</p>
           <button
-            className="btn btn-secondary"
-            style={{ width: 'auto' }}
+            className="btn btn-secondary w-auto"
             onClick={() => {
               this.setState({ hasError: false, error: null });
               window.location.href = '/app';
