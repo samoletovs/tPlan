@@ -36,25 +36,15 @@ export default function Landing() {
       </p>
 
       {/* How it works — 3 steps */}
-      <div style={{
-        display: 'flex', gap: 32, margin: '32px 0', width: '100%', maxWidth: 560, justifyContent: 'center',
-      }}>
+      <div className="steps-row">
         {[
           { step: '1', label: t('landing.step1') },
           { step: '2', label: t('landing.step2') },
           { step: '3', label: t('landing.step3') },
         ].map(({ step, label }) => (
-          <div key={step} style={{ textAlign: 'center', flex: 1 }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-bg)',
-              color: 'var(--accent)', fontWeight: 600, fontSize: '0.875rem',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 8px',
-            }}>
-              {step}
-            </div>
-            <div style={{ fontSize: '0.8125rem', color: 'var(--text-body)', fontWeight: 500 }}>
-              {label}
-            </div>
+          <div key={step} className="step-item">
+            <div className="step-circle">{step}</div>
+            <div className="step-label">{label}</div>
           </div>
         ))}
       </div>
@@ -82,7 +72,7 @@ export default function Landing() {
         {t('auth.login')}
       </button>
 
-      <div style={{ marginTop: 48, fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
+      <div className="footer-text">
         tplan.naurolabs.com
       </div>
     </div>

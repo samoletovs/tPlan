@@ -44,9 +44,9 @@ export default function InlineTimer({ totalSec }: { totalSec: number }) {
       >
         {done ? t('workout.timerDone') : running ? t('workout.stopTimer') : t('workout.startTimer')}
       </button>
-      <span className={`inline-timer-value ${cls}`} style={{
-        color: done ? 'var(--success)' : remaining <= 5 ? 'var(--error)' : remaining <= 10 ? 'var(--warning)' : 'var(--text-secondary)',
-      }}>
+      <span className={`inline-timer-value ${done ? 'text-success' : cls === 'end' ? 'text-error' : cls === 'warn' ? '' : 'text-secondary'}`}
+        style={cls === 'warn' ? { color: 'var(--warning)' } : undefined}
+      >
         {done ? '✓' : fmtTime(remaining)}
       </span>
     </div>

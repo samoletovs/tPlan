@@ -95,12 +95,14 @@ export default function TimedExerciseStep({ step, previousResults, onComplete }:
 
       <div>
         <label className="label">{t('workout.difficulty')}</label>
-        <div className="diff-row">
+        <div className="diff-row" role="group" aria-label={t('workout.difficulty')}>
           {(['easy', 'normal', 'hard'] as const).map(d => (
             <button
               key={d}
               className={`diff-btn${difficulty === d ? ` selected sel-${d}` : ''}`}
               onClick={() => setDifficulty(d)}
+              aria-pressed={difficulty === d}
+              aria-label={t(`workout.${d}`)}
             >
               {t(`workout.${d}`)}
             </button>
@@ -110,14 +112,14 @@ export default function TimedExerciseStep({ step, previousResults, onComplete }:
 
       <input
         type="text"
-        className="input"
+        className="input mt-sm"
         placeholder={t('workout.notes')}
         value={notes}
         onChange={e => setNotes(e.target.value)}
-        style={{ marginTop: 8 }}
+        aria-label={t('workout.notes')}
       />
 
-      <button className="btn btn-primary" onClick={handleComplete} style={{ marginTop: 16 }}>
+      <button className="btn btn-primary mt-md" onClick={handleComplete}>
         {t('workout.completeSet')}
       </button>
     </div>

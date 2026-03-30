@@ -377,3 +377,54 @@ tr:last-child td { border-bottom: none; }
 
 /* User avatar */
 .avatar { width: 40px; height: 40px; border-radius: 50%; }
+
+/* Dropzone */
+.dropzone {
+  border: 2px dashed var(--border); border-radius: var(--radius);
+  padding: var(--space-2xl) var(--space-md); text-align: center;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.dropzone:hover, .dropzone.dragover { border-color: var(--accent); }
+.dropzone-icon { font-size: 2rem; margin-bottom: var(--space-sm); }
+
+/* Confirm delete button */
+.btn-danger { background: var(--error); color: #fff; }
+.btn-danger:hover:not(:disabled) { background: #E0342D; }
+
+/* Chevron icon */
+.chevron {
+  width: 16px; height: 16px; color: var(--text-tertiary); flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.chevron.open { transform: rotate(180deg); }
+.chevron-lg { width: 20px; height: 20px; }
+
+/* Collapsible content */
+.collapse-content { margin-top: 12px; border-top: 1px solid var(--border); padding-top: var(--space-sm); }
+
+/* Landing steps */
+.steps-row { display: flex; gap: var(--space-xl); margin: var(--space-xl) 0; width: 100%; max-width: 560px; justify-content: center; }
+.step-item { text-align: center; flex: 1; }
+.step-circle {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--accent-bg);
+  color: var(--accent); font-weight: 600; font-size: 0.875rem;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-sm);
+}
+.step-label { font-size: 0.8125rem; color: var(--text-body); font-weight: 500; }
+
+/* Footer link */
+.footer-text { margin-top: var(--space-2xl); font-size: 0.75rem; color: var(--text-tertiary); }
+
+/* Confidence badge */
+.confidence-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 0.75rem; font-weight: 500;
+}
+
+/* Warning card */
+.card-warning { background: var(--warning-bg); border-color: var(--warning); }
+.card-warning .label { color: var(--warning); }
+
+/* Success text color */
+.text-success { color: var(--success); }
+.text-error { color: var(--error); }

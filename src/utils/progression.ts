@@ -55,6 +55,29 @@ export function getPlankProgression(
 }
 
 /**
+ * Exercise name keywords for matching (multilingual).
+ * Maps exercise category to keywords that appear in exercise names.
+ * Supports EN and RU names so progression works regardless of language.
+ */
+const EXERCISE_KEYWORDS: Record<keyof Omit<CurrentLevels, 'dumbbells'>, string[]> = {
+  pushups: ['push', 'отжиман'],
+  legRaises: ['leg', 'raise', 'подъём', 'подъем', 'лягуш'],
+  squats: ['squat', 'присед'],
+  bridges: ['bridge', 'мост'],
+  plank: ['plank', 'планк'],
+};
+
+function matchExercise(name: string): keyof typeof EXERCISE_KEYWORDS | null {
+  const lower = name.toLowerCase();
+  for (const [key, keywords] of Object.entries(EXERCISE_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw))) {
+      return key as keyof typeof EXERCISE_KEYWORDS;
+    }
+  }
+  return null;
+}
+
+/**
  * Update user's current levels based on completed workout results.
  */
 export function updateLevels(
@@ -77,26 +100,18 @@ export function updateLevels(
     const anyHard = diffs.some(d => d === 'hard');
     const overallDiff: Difficulty = allEasy ? 'easy' : anyHard ? 'hard' : 'normal';
 
-    if (name.includes('отжиман') || name.includes('push')) {
-      const p = getProgressedReps(updated.pushups.reps, overallDiff, updated.pushups.consecutiveEasy);
-      updated.pushups.reps = p.reps;
-      updated.pushups.consecutiveEasy = p.consecutiveEasy;
-    } else if (name.includes('подъём') || name.includes('leg') || name.includes('лягуш')) {
-      const p = getProgressedReps(updated.legRaises.reps, overallDiff, updated.legRaises.consecutiveEasy);
-      updated.legRaises.reps = p.reps;
-      updated.legRaises.consecutiveEasy = p.consecutiveEasy;
-    } else if (name.includes('присед') || name.includes('squat')) {
-      const p = getProgressedReps(updated.squats.reps, overallDiff, updated.squats.consecutiveEasy);
-      updated.squats.reps = p.reps;
-      updated.squats.consecutiveEasy = p.consecutiveEasy;
-    } else if (name.includes('мост') || name.includes('bridge')) {
-      const p = getProgressedReps(updated.bridges.reps, overallDiff, updated.bridges.consecutiveEasy);
-      updated.bridges.reps = p.reps;
-      updated.bridges.consecutiveEasy = p.consecutiveEasy;
-    } else if (name.includes('планк') || name.includes('plank')) {
+    const category = matchExercise(name);
+    if (!category) continue;
+
+    if (category === 'plank') {
       const p = getPlankProgression(updated.plank.durationSec, overallDiff, updated.plank.consecutiveEasy);
       updated.plank.durationSec = p.durationSec;
       updated.plank.consecutiveEasy = p.consecutiveEasy;
+    } else {
+      const level = updated[category];
+      const p = getProgressedReps(level.reps, overallDiff, level.consecutiveEasy);
+      level.reps = p.reps;
+      level.consecutiveEasy = p.consecutiveEasy;
     }
   }
 

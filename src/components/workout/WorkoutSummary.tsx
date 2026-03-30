@@ -77,7 +77,7 @@ export default function WorkoutSummary({ workout, results, onSave }: Props) {
                     <div className="text-xs text-tertiary">{r.set}</div>
                   </td>
                   <td>
-                    <span style={{ color: r.actual >= r.planned ? 'var(--success)' : 'var(--error)' }}>
+                    <span className={r.actual >= r.planned ? 'text-success' : 'text-error'}>
                       {r.actual}/{r.planned}
                     </span>
                   </td>

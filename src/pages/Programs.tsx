@@ -114,6 +114,8 @@ export default function Programs() {
           <div key={program.id} className="card" style={{ cursor: 'pointer' }}>
             <div
               onClick={() => setExpandedId(isExpanded ? null : program.id)}
+              role="button"
+              aria-expanded={isExpanded}
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
             >
               <div style={{ flex: 1 }}>
@@ -130,10 +132,8 @@ export default function Programs() {
               </div>
               <svg
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
-                style={{
-                  width: 20, height: 20, color: 'var(--text-tertiary)', flexShrink: 0,
-                  transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
-                }}
+                className={`chevron chevron-lg${isExpanded ? ' open' : ''}`}
+                aria-hidden="true"
               >
                 <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -189,11 +189,11 @@ export default function Programs() {
                     {t('programs.progressionRule', { reps: program.progressionRules.repsIncrement, threshold: program.progressionRules.consecutiveEasyThreshold })}
                   </span>
                 </div>
-                {/* Delete button for all programs */}
-                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                {/* Delete button */}
+                <div className="flex gap-sm mt-md">
                   <button
-                    className="btn btn-ghost"
-                    style={{ flex: 1, color: confirmDelete === program.id ? 'var(--bg-card)' : 'var(--error)', fontSize: '0.8125rem', background: confirmDelete === program.id ? 'var(--error)' : undefined }}
+                    className={`btn ${confirmDelete === program.id ? 'btn-danger' : 'btn-ghost'}`}
+                    style={{ flex: 1, color: confirmDelete !== program.id ? 'var(--error)' : undefined }}
                     onClick={(e) => { e.stopPropagation(); handleDelete(program.id); }}
                     disabled={deleting === program.id}
                   >
@@ -202,7 +202,7 @@ export default function Programs() {
                   {confirmDelete === program.id && (
                     <button
                       className="btn btn-ghost"
-                      style={{ flex: 1, fontSize: '0.8125rem' }}
+                      style={{ flex: 1 }}
                       onClick={(e) => { e.stopPropagation(); setConfirmDelete(null); }}
                     >
                       {t('common.cancel')}

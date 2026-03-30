@@ -44,33 +44,35 @@ export default function FeedbackButton() {
 
   return (
     <div className="feedback-panel">
-      <div className="flex-between" style={{ marginBottom: 12 }}>
-        <h3 style={{ fontSize: '0.875rem' }}>{t('feedback.title')}</h3>
-        <button className="btn btn-ghost" style={{ width: 'auto', padding: '4px 8px', fontSize: '0.8rem' }} onClick={() => setOpen(false)}>✕</button>
+      <div className="flex-between mb-md">
+        <h3>{t('feedback.title')}</h3>
+        <button className="btn btn-ghost" style={{ width: 'auto', padding: '4px 8px' }} onClick={() => setOpen(false)}>✕</button>
       </div>
 
       {submitted ? (
-        <p style={{ fontSize: '0.875rem', color: 'var(--success)' }}>{t('feedback.submitted')}</p>
+        <p className="text-success">{t('feedback.submitted')}</p>
       ) : (
         <>
-          <div style={{ display: 'flex', gap: 4, marginBottom: 12 }}>
+          <div className="flex gap-xs mb-md">
             {(['bug', 'feature', 'other'] as const).map(tp => (
               <button
                 key={tp}
                 className={`diff-btn${type === tp ? ' selected sel-normal' : ''}`}
                 onClick={() => setType(tp)}
-                style={{ fontSize: '0.75rem' }}
+                aria-pressed={type === tp}
+                aria-label={t(`feedback.${tp}`)}
               >
                 {t(`feedback.${tp}`)}
               </button>
             ))}
           </div>
           <textarea
-            className="textarea"
+            className="textarea mb-sm"
             placeholder={t('feedback.placeholder')}
             value={description}
             onChange={e => setDescription(e.target.value)}
-            style={{ marginBottom: 8, minHeight: 60 }}
+            style={{ minHeight: 60 }}
+            aria-label={t('feedback.description')}
           />
           <button
             className="btn btn-primary"

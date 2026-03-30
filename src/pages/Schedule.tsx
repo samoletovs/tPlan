@@ -136,6 +136,8 @@ export default function Schedule() {
               <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
                 onClick={() => setEditing(isEditing ? null : day)}
+                role="button"
+                aria-expanded={isEditing}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   <span style={{

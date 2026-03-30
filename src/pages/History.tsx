@@ -58,6 +58,8 @@ export default function History() {
             className="card"
             style={{ cursor: 'pointer' }}
             onClick={() => setExpandedId(isExpanded ? null : log.id)}
+            role="button"
+            aria-expanded={isExpanded}
           >
             <div className="flex-between">
               <div>
@@ -77,10 +79,8 @@ export default function History() {
                 )}
                 <svg
                   viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
-                  style={{
-                    width: 16, height: 16, color: 'var(--text-tertiary)',
-                    transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
-                  }}
+                  className={`chevron${isExpanded ? ' open' : ''}`}
+                  aria-hidden="true"
                 >
                   <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>

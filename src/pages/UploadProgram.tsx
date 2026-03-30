@@ -128,26 +128,17 @@ export default function UploadProgram() {
   if (step === 'upload') {
     return (
       <div>
-        <h2 style={{ marginBottom: 8 }}>{t('upload.title')}</h2>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 24 }}>
-          {t('upload.description')}
-        </p>
+        <h2 className="mb-sm">{t('upload.title')}</h2>
+        <p className="text-secondary mb-lg">{t('upload.description')}</p>
 
         <div
-          style={{
-            border: '2px dashed var(--border)',
-            borderRadius: 'var(--radius)',
-            padding: 48,
-            textAlign: 'center',
-            cursor: 'pointer',
-            transition: 'border-color 0.15s',
-          }}
+          className="dropzone"
           onClick={() => fileRef.current?.click()}
-          onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--accent)'; }}
-          onDragLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+          onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('dragover'); }}
+          onDragLeave={(e) => { e.currentTarget.classList.remove('dragover'); }}
           onDrop={(e) => {
             e.preventDefault();
-            e.currentTarget.style.borderColor = 'var(--border)';
+            e.currentTarget.classList.remove('dragover');
             const file = e.dataTransfer.files[0];
             if (file && fileRef.current) {
               const dt = new DataTransfer();
@@ -156,14 +147,12 @@ export default function UploadProgram() {
               fileRef.current.dispatchEvent(new Event('change', { bubbles: true }));
             }
           }}
+          role="button"
+          aria-label={t('upload.dropzone')}
         >
-          <div style={{ fontSize: '2rem', marginBottom: 8 }}>📄</div>
-          <div style={{ fontSize: '0.875rem', color: 'var(--text-body)', fontWeight: 500, marginBottom: 4 }}>
-            {t('upload.dropzone')}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>
-            {t('upload.formats')}
-          </div>
+          <div className="dropzone-icon">📄</div>
+          <div className="font-medium">{t('upload.dropzone')}</div>
+          <div className="text-xs text-tertiary mt-xs">{t('upload.formats')}</div>
         </div>
 
         <input
@@ -175,18 +164,11 @@ export default function UploadProgram() {
         />
 
         {error && (
-          <div style={{
-            color: 'var(--error)', fontSize: '0.875rem', marginTop: 16,
-            padding: '8px 12px', background: 'var(--error-bg)', borderRadius: 8,
-          }}>
-            {error}
-          </div>
+          <div className="error-toast mt-md">{error}</div>
         )}
 
         <button
-          className="btn btn-ghost"
-          onClick={() => navigate('/app/programs')}
-          style={{ marginTop: 24 }}
+          className="btn btn-ghost mt-lg"
         >
           {t('common.cancel')}
         </button>
@@ -197,13 +179,13 @@ export default function UploadProgram() {
   // ========== EXTRACTING STEP ==========
   if (step === 'extracting') {
     return (
-      <div style={{ textAlign: 'center', paddingTop: 48 }}>
-        <div style={{ fontSize: '2rem', marginBottom: 16 }}>🤖</div>
-        <h2 style={{ marginBottom: 8 }}>{t('upload.extracting')}</h2>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: 24 }}>
+      <div className="text-center" style={{ paddingTop: 48 }}>
+        <div className="dropzone-icon">\uD83E\uDD16</div>
+        <h2 className="mb-sm">{t('upload.extracting')}</h2>
+        <p className="text-secondary mb-lg">
           {t('upload.extractingDesc', { fileName })}
         </p>
-        <div className="progress-bar" style={{ maxWidth: 300, margin: '0 auto' }}>
+        <div className="progress-bar" style={{ maxWidth: 300, margin: '0 auto' }} role="progressbar" aria-label={t('upload.extracting')}>
           <div className="progress-fill" style={{ width: '60%', animation: 'pulse 1.5s infinite' }} />
         </div>
       </div>
@@ -214,17 +196,17 @@ export default function UploadProgram() {
   if ((step === 'review' || step === 'saving') && program) {
     return (
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div className="flex-between mb-lg">
           <h2>{t('upload.review')}</h2>
           <ConfidenceBadge confidence={confidence} />
         </div>
 
         {/* Warnings */}
         {warnings.length > 0 && (
-          <div className="card" style={{ background: 'var(--warning-bg)', borderColor: 'var(--warning)', marginBottom: 16 }}>
-            <label className="label" style={{ color: 'var(--warning)' }}>{t('upload.warnings')}</label>
+          <div className="card card-warning mb-md">
+            <label className="label">{t('upload.warnings')}</label>
             {warnings.map((w, i) => (
-              <div key={i} style={{ fontSize: '0.8125rem', color: 'var(--text-body)', padding: '2px 0' }}>
+              <div key={i} className="text-sm" style={{ padding: '2px 0' }}>
                 ⚠️ {w}
               </div>
             ))}
@@ -235,29 +217,29 @@ export default function UploadProgram() {
         <div className="card">
           <label className="label">{t('upload.programName')}</label>
           <input
-            className="input"
+            className="input mb-md"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            style={{ marginBottom: 12 }}
+            aria-label={t('upload.programName')}
           />
 
           <label className="label">{t('upload.programDesc')}</label>
           <textarea
-            className="textarea"
+            className="textarea mb-md"
             value={editDesc}
             onChange={(e) => setEditDesc(e.target.value)}
             rows={2}
-            style={{ marginBottom: 12 }}
           />
 
           <label className="label">{t('upload.programType')}</label>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="flex gap-sm">
             {(['calisthenics', 'weights', 'custom'] as const).map((type) => (
               <button
                 key={type}
                 className={`btn ${editType === type ? 'btn-primary' : 'btn-secondary'}`}
-                style={{ flex: 1, padding: '6px 12px', fontSize: '0.8125rem' }}
+                style={{ flex: 1 }}
                 onClick={() => setEditType(type)}
+                aria-pressed={editType === type}
               >
                 {t(`programs.type${type.charAt(0).toUpperCase() + type.slice(1)}`)}
               </button>
@@ -304,16 +286,11 @@ export default function UploadProgram() {
         </div>
 
         {error && (
-          <div style={{
-            color: 'var(--error)', fontSize: '0.875rem', marginTop: 8,
-            padding: '8px 12px', background: 'var(--error-bg)', borderRadius: 8,
-          }}>
-            {error}
-          </div>
+          <div className="error-toast mt-sm">{error}</div>
         )}
 
         {/* Actions */}
-        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+        <div className="flex gap-sm mt-sm">
           <button
             className="btn btn-primary"
             onClick={handleSave}
@@ -337,11 +314,11 @@ export default function UploadProgram() {
 }
 
 function ConfidenceBadge({ confidence }: { confidence: number }) {
-  const color = confidence >= 80
-    ? 'var(--success)'
+  const cls = confidence >= 80
+    ? 'text-success'
     : confidence >= 50
-      ? 'var(--warning)'
-      : 'var(--error)';
+      ? ''
+      : 'text-error';
   const bg = confidence >= 80
     ? 'var(--success-bg)'
     : confidence >= 50
@@ -349,10 +326,7 @@ function ConfidenceBadge({ confidence }: { confidence: number }) {
       : 'var(--error-bg)';
 
   return (
-    <span style={{
-      display: 'inline-block', padding: '2px 10px', borderRadius: 12,
-      fontSize: '0.75rem', fontWeight: 500, background: bg, color,
-    }}>
+    <span className={`confidence-badge ${cls}`} style={{ background: bg, color: confidence >= 50 && confidence < 80 ? 'var(--warning)' : undefined }}>
       {confidence}%
     </span>
   );
