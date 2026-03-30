@@ -1,8 +1,9 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId } from '../db.js';
 import { extractProgram } from '../services/extraction.js';
+import { parsePdf } from '../services/pdf-parser.js';
 
-// POST /api/programs/extract — upload book text, get extracted program structure
+// POST /api/programs/extract — upload book text (or base64 PDF), get extracted program structure
 app.http('extractProgram', {
   methods: ['POST'],
   route: 'programs/extract',
@@ -17,13 +18,30 @@ app.http('extractProgram', {
       return { status: 400, jsonBody: { error: 'Invalid JSON body' } };
     }
 
-    const { text, fileName } = body;
+    let { text, fileName } = body;
 
     if (!text || typeof text !== 'string') {
       return { status: 400, jsonBody: { error: 'Missing "text" field — the book content to extract from' } };
     }
     if (!fileName || typeof fileName !== 'string') {
       return { status: 400, jsonBody: { error: 'Missing "fileName" field' } };
+    }
+
+    // If PDF: text is base64-encoded, parse it server-side
+    if (fileName.toLowerCase().endsWith('.pdf')) {
+      try {
+        // Limit base64 size (~20MB file = ~27MB base64)
+        if (text.length > 30_000_000) {
+          return { status: 413, jsonBody: { error: 'PDF too large. Maximum 20 MB.' } };
+        }
+        text = await parsePdf(text);
+        if (!text || text.trim().length < 50) {
+          return { status: 400, jsonBody: { error: 'Could not extract text from PDF. The file may be image-based (scanned) or empty.' } };
+        }
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'PDF parsing failed';
+        return { status: 400, jsonBody: { error: msg } };
+      }
     }
 
     // Limit text size (500KB ≈ large book)

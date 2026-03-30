@@ -197,7 +197,7 @@
     "title": "Upload Training Book",
     "description": "Upload a training methodology book or program. AI will extract exercises, levels, and progression rules — creating a personalized coach from the content.",
     "dropzone": "Drop a file or click to select",
-    "formats": ".txt, .md files supported (PDF coming soon)",
+    "formats": ".txt, .md, and .pdf files supported",
     "invalidType": "Unsupported file type. Use .txt, .md, or .pdf.",
     "tooLarge": "File too large. Maximum 20 MB.",
     "pdfNotYet": "PDF support coming soon. For now, copy the text into a .txt file.",

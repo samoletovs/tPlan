@@ -52,9 +52,26 @@ export default function UploadProgram() {
     let text: string;
     try {
       if (ext === '.pdf') {
-        // For PDF: read as base64 and send to server for extraction
-        // For now, show an error — PDF parsing requires server-side library
-        setError(t('upload.pdfNotYet'));
+        // Read PDF as base64, send to server for text extraction
+        const buffer = await file.arrayBuffer();
+        const base64 = btoa(
+          new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        setStep('extracting');
+        try {
+          const result = await extractProgramFromText(base64, file.name);
+          setProgram(result.program);
+          setConfidence(result.confidence);
+          setWarnings(result.warnings);
+          setEditName(result.program.name || file.name);
+          setEditDesc(result.program.description || '');
+          setEditType(result.program.type || 'custom');
+          setStep('review');
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : 'Extraction failed';
+          setError(msg);
+          setStep('upload');
+        }
         return;
       }
       text = await file.text();

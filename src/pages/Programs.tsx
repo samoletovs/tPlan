@@ -3,22 +3,26 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { getPrograms, deleteProgram, getSchedule, updateSchedule } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import type { Program } from '../types';
+import type { Program, ScheduleData, LevelProgress } from '../types';
 
 export default function Programs() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [programs, setPrograms] = useState<Program[]>([]);
+  const [scheduleData, setScheduleData] = useState<ScheduleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    getPrograms()
-      .then(setPrograms)
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    Promise.all([
+      getPrograms().catch(() => [] as Program[]),
+      getSchedule().catch(() => null),
+    ]).then(([progs, sched]) => {
+      setPrograms(progs);
+      setScheduleData(sched);
+    }).finally(() => setLoading(false));
   }, []);
 
   async function handleDelete(id: string) {
@@ -81,6 +85,14 @@ export default function Programs() {
 
   const levels = user?.currentLevels;
 
+  // Build per-program levels map from schedule data
+  const programLevelsMap: Record<string, Record<string, LevelProgress>> = {};
+  if (scheduleData?.programs) {
+    for (const p of scheduleData.programs) {
+      programLevelsMap[p.programId] = p.currentLevels;
+    }
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -130,7 +142,7 @@ export default function Programs() {
             {isExpanded && (
               <div style={{ marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
                 {program.exercises.map(exercise => {
-                  const userLevel = getUserLevel(program.id, exercise.id, levels);
+                  const userLevel = getUserLevel(program.id, exercise.id, programLevelsMap, levels);
                   const levelInfo = program.levels.find(
                     l => l.exerciseId === exercise.id && l.level === (userLevel?.level ?? exercise.startLevel)
                   );
@@ -210,9 +222,26 @@ export default function Programs() {
 function getUserLevel(
   programId: string,
   exerciseId: string,
-  levels: import('../types').CurrentLevels | undefined,
+  programLevelsMap: Record<string, Record<string, LevelProgress>>,
+  legacyLevels: import('../types').CurrentLevels | undefined,
 ): { level: number; sets: number; reps: number } | null {
-  if (!levels) return null;
+  // Prefer per-program levels from schedule data
+  const programLevels = programLevelsMap[programId];
+  if (programLevels) {
+    const data = programLevels[exerciseId];
+    if (data) {
+      return { level: data.level, sets: data.sets || 1, reps: data.reps };
+    }
+    // Try camelCase variant (e.g. 'leg-raises' -> 'legRaises')
+    const camelId = exerciseId.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+    const camelData = programLevels[camelId];
+    if (camelData) {
+      return { level: camelData.level, sets: camelData.sets || 1, reps: camelData.reps };
+    }
+  }
+
+  // Fallback to legacy flat user.currentLevels
+  if (!legacyLevels) return null;
 
   if (programId === 'convict-conditioning') {
     const map: Record<string, keyof Omit<import('../types').CurrentLevels, 'dumbbells'>> = {
@@ -225,16 +254,16 @@ function getUserLevel(
     };
     const key = map[exerciseId];
     if (key === 'plank') {
-      return { level: 1, sets: 1, reps: levels.plank.durationSec };
+      return { level: 1, sets: 1, reps: legacyLevels.plank.durationSec };
     }
     if (key) {
-      const p = levels[key] as import('../types').LevelProgress;
+      const p = legacyLevels[key] as import('../types').LevelProgress;
       return { level: p.level, sets: p.sets, reps: p.reps };
     }
   }
 
-  if (programId === 'dumbbell-gymnastics' && levels.dumbbells) {
-    const reps = levels.dumbbells.reps[exerciseId];
+  if (programId === 'dumbbell-gymnastics' && legacyLevels.dumbbells) {
+    const reps = legacyLevels.dumbbells.reps[exerciseId];
     if (reps !== undefined) {
       return { level: 1, sets: 2, reps };
     }
