@@ -62,6 +62,7 @@ export interface Workout {
   steps: WorkoutStep[];
   createdAt: string;
   completed: boolean;
+  motivation?: string;
 }
 
 export type WorkoutStep = WarmupStep | ExerciseStep | CooldownStep;
@@ -93,6 +94,7 @@ export interface ExerciseStep {
   planned: number;
   rest: number;
   timer?: number; // for timed holds (plank)
+  aiTip?: string; // AI-generated coaching tip
 }
 
 export interface PreviousResult {

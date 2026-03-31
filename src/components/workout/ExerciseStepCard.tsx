@@ -44,6 +44,10 @@ export default function ExerciseStepCard({ step, previousResults, onComplete }: 
 
       <div className="exercise-technique">{step.technique}</div>
 
+      {step.aiTip && (
+        <div className="exercise-prev">{step.aiTip}</div>
+      )}
+
       <div className="big-number">
         <div className="big-number-value">{step.planned}</div>
         <div className="big-number-label">{t('workout.target')}</div>

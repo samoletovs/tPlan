@@ -19,33 +19,6 @@ export default function Schedule() {
   useEffect(() => {
     Promise.all([getSchedule(), getPrograms()])
       .then(([s, p]) => {
-        // Migrate legacy slot names (A, B, push_core, etc.) to time-based slots
-        if (s?.weeklySchedule) {
-          let migrated = false;
-          const ws = s.weeklySchedule;
-          for (const day of DAYS) {
-            const slots = ws[day];
-            if (!slots) continue;
-            for (let i = 0; i < slots.length; i++) {
-              const slot = slots[i].slot;
-              if (!['morning', 'day', 'evening'].includes(slot)) {
-                slots[i] = { ...slots[i], slot: 'morning' };
-                migrated = true;
-              }
-            }
-            // Deduplicate: same programId + slot
-            const seen = new Set<string>();
-            ws[day] = slots.filter(s => {
-              const key = `${s.programId}:${s.slot}`;
-              if (seen.has(key)) return false;
-              seen.add(key);
-              return true;
-            });
-          }
-          if (migrated) {
-            updateSchedule({ weeklySchedule: ws }).catch(() => {});
-          }
-        }
         setSchedule(s);
         setPrograms(p);
       })

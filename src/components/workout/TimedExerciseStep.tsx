@@ -77,6 +77,10 @@ export default function TimedExerciseStep({ step, previousResults, onComplete }:
 
       <div className="exercise-technique">{step.technique}</div>
 
+      {step.aiTip && (
+        <div className="exercise-prev">{step.aiTip}</div>
+      )}
+
       <div className="big-number">
         <div className={`timer-display ${cls}`}>
           {done ? `✓ ${fmtTime(totalSec)}` : fmtTime(remaining)}

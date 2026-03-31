@@ -166,6 +166,8 @@ export default function UploadProgram() {
           accept=".txt,.md,.pdf"
           style={{ display: 'none' }}
           onChange={handleFileSelect}
+          aria-hidden="true"
+          tabIndex={-1}
         />
 
         {error && (

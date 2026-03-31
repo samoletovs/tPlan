@@ -297,6 +297,15 @@ export default function WorkoutPage() {
           <div className="streak">{'🔥'} {workout.streak} {t('common.days')}</div>
         )}
 
+        {/* AI motivation / workout explanation */}
+        {workout.motivation && (
+          <div className="card mb-md">
+            <div className="text-sm text-secondary" style={{ lineHeight: 1.5 }}>
+              {workout.motivation}
+            </div>
+          </div>
+        )}
+
         {/* Exercise preview */}
         <div className="card mb-md">
           <label className="label">{t('workout.exerciseList')}</label>

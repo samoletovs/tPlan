@@ -78,6 +78,22 @@ function matchExercise(name: string): keyof typeof EXERCISE_KEYWORDS | null {
 }
 
 /**
+ * Find a matching dumbbell exercise key by comparing name against known reps keys.
+ * Supports kebab-case keys ("bicep-curl") matched against display names ("Bicep Curl", "Подъём на бицепс").
+ */
+function findDumbbellKey(name: string, reps: Record<string, number>): string | null {
+  const lower = name.toLowerCase();
+  for (const key of Object.keys(reps)) {
+    // Match: key "bicep-curl" matches name containing "bicep" or "curl"
+    const parts = key.split('-');
+    if (parts.every(part => lower.includes(part))) return key;
+    // Also match if name contains the full key as-is (e.g., Russian transliteration)
+    if (lower.includes(key)) return key;
+  }
+  return null;
+}
+
+/**
  * Update user's current levels based on completed workout results.
  */
 export function updateLevels(
@@ -101,17 +117,27 @@ export function updateLevels(
     const overallDiff: Difficulty = allEasy ? 'easy' : anyHard ? 'hard' : 'normal';
 
     const category = matchExercise(name);
-    if (!category) continue;
-
-    if (category === 'plank') {
-      const p = getPlankProgression(updated.plank.durationSec, overallDiff, updated.plank.consecutiveEasy);
-      updated.plank.durationSec = p.durationSec;
-      updated.plank.consecutiveEasy = p.consecutiveEasy;
-    } else {
-      const level = updated[category];
-      const p = getProgressedReps(level.reps, overallDiff, level.consecutiveEasy);
-      level.reps = p.reps;
-      level.consecutiveEasy = p.consecutiveEasy;
+    if (category) {
+      if (category === 'plank') {
+        const p = getPlankProgression(updated.plank.durationSec, overallDiff, updated.plank.consecutiveEasy);
+        updated.plank.durationSec = p.durationSec;
+        updated.plank.consecutiveEasy = p.consecutiveEasy;
+      } else {
+        const level = updated[category];
+        const p = getProgressedReps(level.reps, overallDiff, level.consecutiveEasy);
+        level.reps = p.reps;
+        level.consecutiveEasy = p.consecutiveEasy;
+      }
+    } else if (updated.dumbbells) {
+      // Dumbbell exercises: match by name against known dumbbell exercise keys
+      const dbKey = findDumbbellKey(name, updated.dumbbells.reps);
+      if (dbKey) {
+        const currentReps = updated.dumbbells.reps[dbKey] ?? 5;
+        const consecutiveEasy = updated.dumbbells.consecutiveEasy[dbKey] ?? 0;
+        const p = getProgressedReps(currentReps, overallDiff, consecutiveEasy);
+        updated.dumbbells.reps[dbKey] = p.reps;
+        updated.dumbbells.consecutiveEasy[dbKey] = p.consecutiveEasy;
+      }
     }
   }
 

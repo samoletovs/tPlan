@@ -23,6 +23,19 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('ErrorBoundary caught:', error, info.componentStack);
+    // Report to backend for monitoring (best-effort, fire-and-forget)
+    try {
+      fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'crash',
+          description: `[Auto] ${error.name}: ${error.message}\n\nStack: ${info.componentStack?.slice(0, 500)}`,
+        }),
+      }).catch(() => {});
+    } catch {
+      // Logging is best-effort
+    }
   }
 
   render() {
