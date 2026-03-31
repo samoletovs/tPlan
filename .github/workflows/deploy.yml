@@ -60,18 +60,22 @@ jobs:
 
       - name: Notify Telegram (success)
         if: success() && github.event_name == 'push'
+        env:
+          TELEGRAM_NOTIFY_URL: ${{ secrets.TELEGRAM_NOTIFY_URL }}
         run: |
           COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
-          curl -sf -X POST "${{ secrets.TELEGRAM_NOTIFY_URL }}" \
+          curl -sf -X POST "$TELEGRAM_NOTIFY_URL" \
             -H "Content-Type: application/json" \
             -d "{\"message\": \"✅ tPlan deployed\\n\\nBranch: ${{ github.ref_name }}\\nCommit: ${COMMIT_MSG}\\nSHA: ${{ github.sha }}\\nURL: https://tplan.naurolabs.com\"}" \
             || echo "::warning::Telegram notification failed"
 
       - name: Notify Telegram (failure)
         if: failure() && github.event_name == 'push'
+        env:
+          TELEGRAM_NOTIFY_URL: ${{ secrets.TELEGRAM_NOTIFY_URL }}
         run: |
           COMMIT_MSG=$(echo "${{ github.event.head_commit.message }}" | head -1)
-          curl -sf -X POST "${{ secrets.TELEGRAM_NOTIFY_URL }}" \
+          curl -sf -X POST "$TELEGRAM_NOTIFY_URL" \
             -H "Content-Type: application/json" \
             -d "{\"message\": \"❌ tPlan deploy FAILED\\n\\nBranch: ${{ github.ref_name }}\\nCommit: ${COMMIT_MSG}\\nCheck: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}" \
             || echo "::warning::Telegram notification failed"
@@ -86,3 +90,4 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_SWA_TOKEN }}
           action: close
+          app_location: /
