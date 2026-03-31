@@ -182,7 +182,7 @@ export async function extractProgram(
   const inventoryResult = await callAI(
     endpoint, key, deployment, INVENTORY_PROMPT,
     `Extract every exercise from this book.\n\nFile: ${fileName}\n\n---\n\n${inputText}`,
-    4096,
+    8192,
   );
   if (inventoryResult.truncated) {
     warnings.push('Exercise inventory was truncated — some exercises may be missing.');
