@@ -48,5 +48,8 @@ test-screenshots/
 **/test-screenshots/
 *.png
 
-# Duplicate app folder (legacy)
+# Phase 1 legacy (local app era)
 tplan-app/
+workouts/
+template/
+logs/
