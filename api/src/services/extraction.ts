@@ -57,7 +57,7 @@ Return a JSON object with EXACTLY this shape:
 }
 
 Rules:
-- Extract ALL exercises mentioned with progressive levels
+- Extract ALL exercises mentioned with progressive levels. Do NOT truncate or summarize — include every exercise in the book, even if there are 30-50+.
 - Each exercise should have multiple levels if the book describes progressions
 - Group exercises into "trainingDays" by muscle group pairing (e.g., push+core, pull+legs)
 - The book's recommended weekly schedule goes in "defaultSchedule" (null = rest day)
@@ -106,7 +106,7 @@ export async function extractProgram(
           },
         ],
         temperature: 0.2,
-        max_tokens: 8000,
+        max_tokens: 16000,
         response_format: { type: 'json_object' },
       }),
     },
