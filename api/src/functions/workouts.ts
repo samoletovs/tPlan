@@ -115,7 +115,10 @@ app.http('generateWorkout', {
             name: entity.name,
             type: entity.type,
             exercises: JSON.parse(entity.exercises as string || '[]'),
+            levels: JSON.parse(entity.levels as string || '[]'),
             progressionRules: JSON.parse(entity.progressionRules as string || '{}'),
+            trainingDays: JSON.parse(entity.trainingDays as string || '{}'),
+            defaultSchedule: JSON.parse(entity.defaultSchedule as string || '{}'),
           };
           break;
         } catch { continue; }
@@ -171,6 +174,10 @@ app.http('generateWorkout', {
 
       const levels = user.currentLevels[slot.programId] || {};
 
+      // Resolve training day type: use program's defaultSchedule to find
+      // which trainingDay type applies today (e.g. "push_core", "pull_legs")
+      const trainingDayType = program.defaultSchedule?.[dayKey] || slot.slot;
+
       // Find last log with this program for previousResults
       const lastLog = last5.find((l: any) => l.programId === slot.programId);
       const previousResults = lastLog?.exercises || [];
@@ -178,9 +185,9 @@ app.http('generateWorkout', {
       // Apply progression rules, rest filtering, and rotation
       const maxPerSession = program.progressionRules?.maxExercisesPerSession || 10;
       const defaultRestDays = program.progressionRules?.restDaysBetweenSameMuscle ?? 1;
-      const steps = buildProgramSteps(program, levels, slot.slot, previousResults, exerciseLastDone, todayMs, maxPerSession, defaultRestDays);
+      const steps = buildProgramSteps(program, levels, trainingDayType, previousResults, exerciseLastDone, todayMs, maxPerSession, defaultRestDays);
       allSteps.push(...steps);
-      titles.push(`${program.name}${slot.slot ? ` (${slot.slot})` : ''}`);
+      titles.push(`${program.name}${trainingDayType ? ` (${program.trainingDays?.[trainingDayType]?.label || trainingDayType})` : ''}`);
     }
 
     // Add warmup at start, cooldown at end
