@@ -47,3 +47,6 @@ screenshots/
 test-screenshots/
 **/test-screenshots/
 *.png
+
+# Duplicate app folder (legacy)
+tplan-app/

@@ -122,7 +122,7 @@ app.http('generateWorkout', {
       }
     }
 
-    // 4. Get recent logs for progression
+    // 4. Get recent logs for progression + exercise rest tracking
     const logsTable = getTable('tplanLogs');
     const recentLogs: any[] = [];
     for await (const entity of logsTable.listEntities({
@@ -132,6 +132,17 @@ app.http('generateWorkout', {
     }
     recentLogs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     const last5 = recentLogs.slice(0, 5);
+
+    // Build per-exercise last-done date map from recent logs
+    const exerciseLastDone: Record<string, string> = {}; // exerciseId → date string
+    for (const log of recentLogs.slice(0, 14)) { // look back ~2 weeks
+      for (const ex of (log.exercises || [])) {
+        const exId = ex.exerciseId || ex.name;
+        if (exId && !exerciseLastDone[exId]) {
+          exerciseLastDone[exId] = log.date;
+        }
+      }
+    }
 
     // 5. Calculate streak
     const logDates = [...new Set(recentLogs.map(l => l.date))].sort((a, b) => b.localeCompare(a));
@@ -152,6 +163,7 @@ app.http('generateWorkout', {
     // 6. Build workout steps for each scheduled program
     const allSteps: any[] = [];
     const titles: string[] = [];
+    const todayMs = new Date(date).getTime();
 
     for (const slot of todaySlots) {
       const program = programsMap[slot.programId];
@@ -163,8 +175,10 @@ app.http('generateWorkout', {
       const lastLog = last5.find((l: any) => l.programId === slot.programId);
       const previousResults = lastLog?.exercises || [];
 
-      // Apply progression rules from program
-      const steps = buildProgramSteps(program, levels, slot.slot, previousResults);
+      // Apply progression rules, rest filtering, and rotation
+      const maxPerSession = program.progressionRules?.maxExercisesPerSession || 10;
+      const defaultRestDays = program.progressionRules?.restDaysBetweenSameMuscle ?? 1;
+      const steps = buildProgramSteps(program, levels, slot.slot, previousResults, exerciseLastDone, todayMs, maxPerSession, defaultRestDays);
       allSteps.push(...steps);
       titles.push(`${program.name}${slot.slot ? ` (${slot.slot})` : ''}`);
     }
@@ -229,16 +243,74 @@ app.http('generateWorkout', {
   },
 });
 
-function buildProgramSteps(program: any, levels: any, slot: string, previousResults: any[]): any[] {
+function buildProgramSteps(
+  program: any,
+  levels: any,
+  slot: string,
+  previousResults: any[],
+  exerciseLastDone: Record<string, string>,
+  todayMs: number,
+  maxPerSession: number,
+  defaultRestDays: number,
+): any[] {
+  const DAY_MS = 86400000;
+
+  // 1. Filter exercises for this slot/day type
+  let eligible = program.exercises.filter((exercise: any) => {
+    if (exercise.slots && exercise.slots.length > 0 && slot) {
+      return exercise.slots.includes(slot);
+    }
+    return true; // no slot filter or no slots defined
+  });
+
+  // 2. Separate into "rested" (ready) and "needs rest" (too recent)
+  const ready: any[] = [];
+  const needsRest: any[] = [];
+  for (const exercise of eligible) {
+    const lastDone = exerciseLastDone[exercise.id];
+    if (lastDone) {
+      const daysSince = (todayMs - new Date(lastDone).getTime()) / DAY_MS;
+      const restRequired = exercise.restDaysBetween ?? defaultRestDays;
+      if (daysSince <= restRequired) {
+        needsRest.push(exercise);
+        continue;
+      }
+    }
+    ready.push(exercise);
+  }
+
+  // 3. If we have more exercises ready than maxPerSession, rotate
+  //    Use a deterministic rotation based on today's date so the same day
+  //    always picks the same subset (but different days rotate through)
+  let selected = ready;
+  if (selected.length > maxPerSession) {
+    // Sort by: least recently done first (prioritize exercises not done in a while)
+    selected.sort((a: any, b: any) => {
+      const aDate = exerciseLastDone[a.id] || '2000-01-01';
+      const bDate = exerciseLastDone[b.id] || '2000-01-01';
+      return aDate.localeCompare(bDate); // oldest first
+    });
+    selected = selected.slice(0, maxPerSession);
+  }
+
+  // 4. If after rest filtering we have very few exercises, pull some from needsRest
+  //    that have the longest rest already (least fatigued)
+  const MIN_EXERCISES = 3;
+  if (selected.length < MIN_EXERCISES && needsRest.length > 0) {
+    needsRest.sort((a: any, b: any) => {
+      const aDate = exerciseLastDone[a.id] || '2000-01-01';
+      const bDate = exerciseLastDone[b.id] || '2000-01-01';
+      return aDate.localeCompare(bDate); // most rested first
+    });
+    const needed = MIN_EXERCISES - selected.length;
+    selected.push(...needsRest.slice(0, needed));
+  }
+
+  // 5. Build steps for selected exercises
   const steps: any[] = [];
-
-  for (const exercise of program.exercises) {
-    // Check if this exercise belongs to the current slot/day type
-    if (exercise.slots && !exercise.slots.includes(slot) && slot) continue;
-
+  for (const exercise of selected) {
     const exLevel = levels[exercise.id] || { level: exercise.startLevel || 1, sets: exercise.defaultSets || 2, reps: exercise.defaultReps || 5 };
 
-    // Find the level definition
     const levelDef = (program.levels || []).find((l: any) =>
       l.exerciseId === exercise.id && l.level === exLevel.level
     );
