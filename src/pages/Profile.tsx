@@ -166,6 +166,7 @@ export default function Profile() {
                   className={`lang-btn${prefs.weekStartsOn === 'monday' ? ' active' : ''}`}
                   onClick={() => updatePreference('weekStartsOn', 'monday')}
                   disabled={saving}
+                  aria-label={t('profile.monday')}
                 >
                   {t('profile.monday')}
                 </button>
@@ -173,6 +174,7 @@ export default function Profile() {
                   className={`lang-btn${prefs.weekStartsOn === 'sunday' ? ' active' : ''}`}
                   onClick={() => updatePreference('weekStartsOn', 'sunday')}
                   disabled={saving}
+                  aria-label={t('profile.sunday')}
                 >
                   {t('profile.sunday')}
                 </button>
