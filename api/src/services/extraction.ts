@@ -160,7 +160,9 @@ export async function extractProgram(
 ): Promise<{ program: any; confidence: number; warnings: string[] }> {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
   const key = process.env.AZURE_OPENAI_KEY;
-  const deployment = process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o';
+  // Use gpt-4o for extraction (complex task), fall back to general deployment
+  const deployment = process.env.AZURE_OPENAI_EXTRACTION_DEPLOYMENT
+    || process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o';
 
   if (!endpoint || !key) {
     throw new Error('Azure OpenAI not configured. Set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY.');
