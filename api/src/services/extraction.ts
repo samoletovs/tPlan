@@ -228,7 +228,7 @@ export async function extractProgram(
     // Merge enrichment data back into inventory exercises
     const enrichMap = new Map((enriched.exercises || []).map((e: any) => [e.id, e]));
     for (const ex of batch) {
-      const details = enrichMap.get(ex.id) || {};
+      const details: any = enrichMap.get(ex.id) || {};
       allEnrichedExercises.push({
         id: ex.id,
         name: ex.name,
