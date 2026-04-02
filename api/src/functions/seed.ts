@@ -22,10 +22,11 @@ const SEED_PROGRAMS = [
     programId: 'convict-conditioning',
     currentLevels: {
       pushups: { level: 5, sets: 2, reps: 11, consecutiveEasy: 0 },
-      legRaises: { level: 5, sets: 2, reps: 5, consecutiveEasy: 0 },
+      'leg-raises': { level: 5, sets: 2, reps: 5, consecutiveEasy: 0 },
       squats: { level: 5, sets: 2, reps: 11, consecutiveEasy: 0 },
+      pullups: { level: 1, sets: 2, reps: 5, consecutiveEasy: 0 },
       bridges: { level: 1, sets: 2, reps: 10, consecutiveEasy: 0 },
-      plank: { level: 1, sets: 1, reps: 60, durationSec: 60, consecutiveEasy: 0 },
+      'handstand-pushups': { level: 1, sets: 2, reps: 5, consecutiveEasy: 0 },
     },
   },
   {

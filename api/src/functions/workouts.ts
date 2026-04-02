@@ -176,7 +176,31 @@ app.http('generateWorkout', {
 
       // Resolve training day type: use program's defaultSchedule to find
       // which trainingDay type applies today (e.g. "push_core", "pull_legs")
-      const trainingDayType = program.defaultSchedule?.[dayKey] || slot.slot;
+      let trainingDayType = program.defaultSchedule?.[dayKey];
+
+      // If the program's default schedule doesn't cover this day (e.g. user
+      // scheduled CC on a day not in the "Good Behavior" 3-day split), cycle
+      // through the program's training day types based on position.
+      if (!trainingDayType && program.trainingDays) {
+        const dayOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        const tdKeys = Object.keys(program.trainingDays);
+        if (tdKeys.length > 0) {
+          // Find all days this program is scheduled in the user's weekly plan
+          const scheduledDays = dayOrder.filter(dk =>
+            (schedule.weeklySchedule[dk] || []).some((s: any) => s.programId === slot.programId)
+          );
+          const dayPos = scheduledDays.indexOf(dayKey);
+          if (dayPos >= 0) {
+            trainingDayType = tdKeys[dayPos % tdKeys.length];
+          } else {
+            // Workout generated for an unscheduled day — use first type
+            trainingDayType = tdKeys[0];
+          }
+        }
+      }
+
+      // Final fallback
+      trainingDayType = trainingDayType || slot.slot;
 
       // Find last log with this program for previousResults
       const lastLog = last5.find((l: any) => l.programId === slot.programId);
