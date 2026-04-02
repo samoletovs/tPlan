@@ -48,7 +48,7 @@ export default function Dashboard() {
         setTodayPrograms([...new Set(names)]);
       }
     });
-  }, []);
+  }, [t]);
 
   if (loading) {
     return (

@@ -16,7 +16,7 @@ export default function History() {
       .then(setLogs)
       .catch(() => setError(t('error.apiError')))
       .finally(() => setLoading(false));
-  }, []);
+  }, [t]);
 
   if (loading) {
     return (
