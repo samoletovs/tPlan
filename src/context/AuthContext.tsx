@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setPrincipal(cp);
 
       if (cp) {
+        fetch('/api/track-login', { method: 'POST' }).catch(() => {});
         // Get or create user profile
         const userRes = await fetch('/api/user');
         if (userRes.ok) {
