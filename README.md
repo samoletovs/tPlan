@@ -1,6 +1,6 @@
-# Tplan Web App — NauroLabs Research Lab
+# tPlan Web App — NauroLabs Research Lab
 
-> Phase 2 of the Tplan research project: a multi-user web application exploring AI-driven workout generation from training methodology books.
+> Phase 2 of the tPlan research project: a multi-user web application exploring AI-driven workout generation from training methodology books.
 
 ## Research Context
 
