@@ -2,18 +2,25 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { getWorkouts, getSchedule, getPrograms, generateWorkout, deleteWorkout, saveLog } from '../services/api';
-import type { Workout, WorkoutStep, ExerciseResult, ScheduleSlot, Program, DayOfWeek } from '../types';
+import type { Workout, WorkoutStep, ExerciseResult, ScheduleSlot, Program, DayOfWeek, GenerateWorkoutResponse } from '../types';
 import ChecklistStep from '../components/workout/ChecklistStep';
 import ExerciseStepCard from '../components/workout/ExerciseStepCard';
 import TimedExerciseStep from '../components/workout/TimedExerciseStep';
 import RestTimer from '../components/workout/RestTimer';
 import WorkoutSummary from '../components/workout/WorkoutSummary';
 import ProgressBar from '../components/workout/ProgressBar';
+import { useAuth } from '../context/AuthContext';
 
 const DAY_MAP: DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
+function isRestDayResponse(response: GenerateWorkoutResponse | Record<string, unknown>): response is Extract<GenerateWorkoutResponse, { restDay: true }> {
+  return (response as { restDay?: unknown }).restDay === true
+    || (response as { rest?: unknown }).rest === true;
+}
+
 export default function WorkoutPage() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { id } = useParams();
   const [workout, setWorkout] = useState<Workout | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,7 +64,7 @@ export default function WorkoutPage() {
         if (found) setWorkout(found);
       } else {
         const workouts = await getWorkouts();
-        const today = new Date().toISOString().split('T')[0];
+        const today = getLocalDateKey();
         const todayWorkout = workouts.find(w => w.date === today && !w.completed);
         if (todayWorkout) {
           setWorkout(todayWorkout);
@@ -86,12 +93,13 @@ export default function WorkoutPage() {
     setGenerating(session || 'morning');
     setError(null);
     try {
-      const today = new Date().toISOString().split('T')[0];
-      const w = await generateWorkout(today, session, userNote || undefined);
-      if ('rest' in w && (w as Record<string, unknown>).rest) {
-        setError(`${(w as Record<string, unknown>).message || t('workout.restDay')}`);
+      const today = getLocalDateKey();
+      const response = await generateWorkout(today, session, userNote || undefined);
+      if (isRestDayResponse(response)) {
+        setWorkout(null);
+        setError(response.message || t('workout.restDay'));
       } else {
-        setWorkout(w);
+        setWorkout(response);
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to generate workout';
@@ -150,9 +158,13 @@ export default function WorkoutPage() {
 
   async function handleSave(bodyWeight: number | null, notes: string) {
     if (!workout) return;
+    if (!user?.userId) {
+      throw new Error('Sign in again to save workout progress.');
+    }
+
     const durationMin = Math.round((Date.now() - startTimeRef.current) / 60000);
     await saveLog({
-      userId: '',
+      workoutId: workout.id,
       date: workout.date,
       day: workout.day,
       week: workout.week,
@@ -365,6 +377,13 @@ export default function WorkoutPage() {
       )}
     </div>
   );
+}
+
+function getLocalDateKey(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function StepRenderer({

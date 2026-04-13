@@ -29,6 +29,12 @@ export default function ExerciseStepCard({ step, previousResults, onComplete }: 
     });
   }
 
+  function handleRepsChange(value: string) {
+    const parsed = Number.parseInt(value, 10);
+    const sanitized = Number.isNaN(parsed) ? 0 : Math.min(Math.max(parsed, 0), 99);
+    setReps(sanitized);
+  }
+
   return (
     <div className="card active">
       <span className="tag">{t('workout.exercise')}</span>
@@ -60,7 +66,7 @@ export default function ExerciseStepCard({ step, previousResults, onComplete }: 
           type="number"
           className="input"
           value={reps}
-          onChange={e => setReps(parseInt(e.target.value) || 0)}
+          onChange={e => handleRepsChange(e.target.value)}
           min={0}
           max={99}
           aria-label={t('workout.done')}

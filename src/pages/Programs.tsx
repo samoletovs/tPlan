@@ -14,6 +14,7 @@ export default function Programs() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -39,6 +40,7 @@ export default function Programs() {
     }
     setDeleting(id);
     setConfirmDelete(null);
+    setError(null);
     try {
       await deleteProgram(id);
       // Remove program from schedule too
@@ -54,10 +56,12 @@ export default function Programs() {
         if (changed) {
           await updateSchedule({ weeklySchedule: ws });
         }
-      } catch { /* schedule cleanup is best-effort */ }
+      } catch {
+        setError(t('error.apiError'));
+      }
       setPrograms(prev => prev.filter(p => p.id !== id));
     } catch {
-      // silent
+      setError(t('error.apiError'));
     } finally {
       setDeleting(null);
     }
@@ -108,6 +112,8 @@ export default function Programs() {
           {t('programs.uploadBook')}
         </Link>
       </div>
+
+      {error && <div className="error-toast mb-sm">{error}</div>}
 
       {programs.map(program => {
         const isExpanded = expandedId === program.id;

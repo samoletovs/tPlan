@@ -116,7 +116,7 @@ describe('api — endpoints', () => {
 
   it('saveLog posts log data', async () => {
     const log = {
-      userId: '', date: '2026-03-30', day: 'Mon', week: 5,
+      workoutId: 'w-1', date: '2026-03-30', day: 'Mon', week: 5,
       workout: 'Calisthenics A', durationMin: 30, bodyWeightKg: 85,
       streak: 3, exercises: [], notes: '', timestamp: '2026-03-30T10:00:00',
     };
@@ -126,6 +126,10 @@ describe('api — endpoints', () => {
       method: 'POST',
       body: JSON.stringify(log),
     }));
+
+    const [, options] = mockFetch.mock.calls.at(-1) as [string, RequestInit];
+    const parsedBody = JSON.parse(String(options.body));
+    expect(parsedBody.userId).toBeUndefined();
   });
 
   it('getDashboard calls /dashboard', async () => {

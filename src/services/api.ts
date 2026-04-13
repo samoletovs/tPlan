@@ -1,9 +1,11 @@
 import type {
   User, Workout, WorkoutLog, DashboardStats,
-  ApiResponse, Program, ScheduleData, ExtractionResult,
+  ApiResponse, Program, ScheduleData, ExtractionResult, GenerateWorkoutResponse,
 } from '../types';
 
 const BASE = '/api';
+
+type SaveWorkoutLogPayload = Omit<WorkoutLog, 'id' | 'userId'>;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -46,7 +48,7 @@ export const getWorkout = (id: string) => request<Workout>(`/workouts/${id}`);
 export const deleteWorkout = (id: string) =>
   request<{ deleted: boolean }>(`/workouts/${id}`, { method: 'DELETE' });
 export const generateWorkout = (date: string, session?: 'morning' | 'evening', userNote?: string) =>
-  request<Workout>('/workouts/generate', {
+  request<GenerateWorkoutResponse>('/workouts/generate', {
     method: 'POST',
     body: JSON.stringify({ date, session, userNote }),
   });
@@ -54,7 +56,7 @@ export const generateWorkout = (date: string, session?: 'morning' | 'evening', u
 // ===== Logs =====
 export const getLogs = (limit = 50, offset = 0) =>
   request<WorkoutLog[]>(`/logs?limit=${limit}&offset=${offset}`);
-export const saveLog = (log: Omit<WorkoutLog, 'id'>) =>
+export const saveLog = (log: SaveWorkoutLogPayload) =>
   request<WorkoutLog>('/logs', { method: 'POST', body: JSON.stringify(log) });
 
 // ===== Dashboard =====

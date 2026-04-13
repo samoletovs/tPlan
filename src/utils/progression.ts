@@ -1,5 +1,8 @@
 import type { CurrentLevels, ExerciseResult, Difficulty } from '../types';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const STREAK_GAP_TOLERANCE_DAYS = 1.5;
+
 /**
  * Check if an exercise should progress based on consecutive easy ratings.
  * Rule: "easy" 2+ times in a row → +2 reps
@@ -151,8 +154,8 @@ export function calculateStreak(logDates: string[]): number {
   if (logDates.length === 0) return 0;
 
   const sorted = [...logDates].sort((a, b) => b.localeCompare(a));
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const today = getLocalDateKey();
+  const yesterday = getLocalDateKey(new Date(Date.now() - MS_PER_DAY));
 
   // Streak must include today or yesterday
   if (sorted[0] !== today && sorted[0] !== yesterday) return 0;
@@ -161,12 +164,19 @@ export function calculateStreak(logDates: string[]): number {
   for (let i = 1; i < sorted.length; i++) {
     const prev = new Date(sorted[i - 1]);
     const curr = new Date(sorted[i]);
-    const diffDays = (prev.getTime() - curr.getTime()) / 86400000;
-    if (diffDays <= 1.5) {
+    const diffDays = (prev.getTime() - curr.getTime()) / MS_PER_DAY;
+    if (diffDays <= STREAK_GAP_TOLERANCE_DAYS) {
       streak++;
     } else {
       break;
     }
   }
   return streak;
+}
+
+function getLocalDateKey(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

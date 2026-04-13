@@ -23,14 +23,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchAuth();
+    let cancelled = false;
+
+    void fetchAuth(() => cancelled);
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  async function fetchAuth() {
+  async function fetchAuth(isCancelled: () => boolean) {
     try {
       const res = await fetch('/.auth/me');
       const data = await res.json();
       const cp = data.clientPrincipal as ClientPrincipal | null;
+      if (isCancelled()) return;
       setPrincipal(cp);
 
       if (cp) {
@@ -39,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userRes = await fetch('/api/user');
         if (userRes.ok) {
           const userData = await userRes.json();
+          if (isCancelled()) return;
           setUser(userData);
 
           // Auto-seed if no schedule exists (first login)
@@ -47,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               await fetch('/api/seed', { method: 'POST' });
               // Reload user after seed
               const reloadRes = await fetch('/api/user');
-              if (reloadRes.ok) setUser(await reloadRes.json());
+              if (reloadRes.ok && !isCancelled()) setUser(await reloadRes.json());
             } catch { /* seed failed — non-critical */ }
           }
         }
@@ -55,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Not authenticated or API not available
     } finally {
-      setLoading(false);
+      if (!isCancelled()) setLoading(false);
     }
   }
 

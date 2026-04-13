@@ -1,6 +1,9 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId } from '../db.js';
 
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const STREAK_GAP_TOLERANCE_DAYS = 1.5;
+
 // POST /api/logs — save completed workout log + update progression
 app.http('saveLogs', {
   methods: ['POST'],
@@ -41,7 +44,9 @@ app.http('saveLogs', {
           ...entity,
           data: JSON.stringify(data),
         } as any, 'Merge');
-      } catch { /* non-critical */ }
+      } catch (err) {
+        console.warn('Workout completion sync skipped:', { userId, workoutId: body.workoutId, error: err });
+      }
     }
 
     return { status: 201, jsonBody: log };
@@ -65,8 +70,10 @@ app.http('getLogs', {
     }
     logs.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-    const limit = parseInt(req.query.get('limit') || '50');
-    const offset = parseInt(req.query.get('offset') || '0');
+    const parsedLimit = Number.parseInt(req.query.get('limit') || '50', 10);
+    const parsedOffset = Number.parseInt(req.query.get('offset') || '0', 10);
+    const limit = Number.isNaN(parsedLimit) ? 50 : Math.min(Math.max(parsedLimit, 1), 200);
+    const offset = Number.isNaN(parsedOffset) ? 0 : Math.max(parsedOffset, 0);
     return { jsonBody: logs.slice(offset, offset + limit) };
   },
 });
@@ -114,21 +121,21 @@ app.http('getDashboard', {
     // Streak
     const dates = [...new Set(logs.map(l => l.date))].sort((a, b) => b.localeCompare(a));
     let currentStreak = 0, maxStreak = 0, tempStreak = 1;
-    const today = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const today = getLocalDateKey();
+    const yesterday = getLocalDateKey(new Date(Date.now() - MS_PER_DAY));
 
     if (dates[0] === today || dates[0] === yesterday) {
       currentStreak = 1;
       for (let i = 1; i < dates.length; i++) {
-        const diff = (new Date(dates[i - 1]).getTime() - new Date(dates[i]).getTime()) / 86400000;
-        if (diff <= 1.5) currentStreak++;
+        const diff = (new Date(dates[i - 1]).getTime() - new Date(dates[i]).getTime()) / MS_PER_DAY;
+        if (diff <= STREAK_GAP_TOLERANCE_DAYS) currentStreak++;
         else break;
       }
     }
 
     for (let i = 1; i < dates.length; i++) {
-      const diff = (new Date(dates[i - 1]).getTime() - new Date(dates[i]).getTime()) / 86400000;
-      if (diff <= 1.5) { tempStreak++; maxStreak = Math.max(maxStreak, tempStreak); }
+      const diff = (new Date(dates[i - 1]).getTime() - new Date(dates[i]).getTime()) / MS_PER_DAY;
+      if (diff <= STREAK_GAP_TOLERANCE_DAYS) { tempStreak++; maxStreak = Math.max(maxStreak, tempStreak); }
       else tempStreak = 1;
     }
     maxStreak = Math.max(maxStreak, currentStreak);
@@ -167,21 +174,16 @@ async function updateProgression(userId: string, log: any) {
     grouped.get(key)!.push(ex);
   }
 
-  // For each exercise, check if ALL sets were "easy"
-  const updates: Record<string, Record<string, any>> = {};
+  const userTable = getTable('tplanUsers');
+  try {
+    const userEntity = await userTable.getEntity(userId, 'profile');
+    const currentLevels = JSON.parse(userEntity.currentLevels as string || '{}');
 
-  for (const [key, sets] of grouped) {
-    const [programId, exerciseId] = key.split(':');
-    const allEasy = sets.every((s: any) => s.difficulty === 'easy');
-    const anyHard = sets.some((s: any) => s.difficulty === 'hard');
+    for (const [key, sets] of grouped) {
+      const [programId, exerciseId] = key.split(':');
+      const allEasy = sets.every((s: any) => s.difficulty === 'easy');
+      const anyHard = sets.some((s: any) => s.difficulty === 'hard');
 
-    if (!updates[programId]) updates[programId] = {};
-
-    // Get current levels from user
-    const userTable = getTable('tplanUsers');
-    try {
-      const userEntity = await userTable.getEntity(userId, 'profile');
-      const currentLevels = JSON.parse(userEntity.currentLevels as string || '{}');
       const progLevels = currentLevels[programId] || {};
       const exLevel = progLevels[exerciseId] || { level: 1, sets: 2, reps: 5, consecutiveEasy: 0 };
 
@@ -200,11 +202,20 @@ async function updateProgression(userId: string, log: any) {
 
       progLevels[exerciseId] = exLevel;
       currentLevels[programId] = progLevels;
+    }
 
-      await userTable.updateEntity({
-        ...userEntity,
-        currentLevels: JSON.stringify(currentLevels),
-      } as any, 'Merge');
-    } catch { /* non-critical */ }
+    await userTable.updateEntity({
+      ...userEntity,
+      currentLevels: JSON.stringify(currentLevels),
+    } as any, 'Merge');
+  } catch (err) {
+    console.warn('Progression update skipped:', { userId, error: err });
   }
+}
+
+function getLocalDateKey(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }

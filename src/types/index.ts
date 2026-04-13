@@ -65,6 +65,13 @@ export interface Workout {
   motivation?: string;
 }
 
+export interface RestDayResponse {
+  restDay: true;
+  message?: string;
+}
+
+export type GenerateWorkoutResponse = Workout | RestDayResponse;
+
 export type WorkoutStep = WarmupStep | ExerciseStep | CooldownStep;
 
 export interface WarmupStep {
@@ -111,6 +118,7 @@ export type Difficulty = 'easy' | 'normal' | 'hard';
 export interface WorkoutLog {
   id: string;
   userId: string;
+  workoutId?: string;
   date: string;
   day: string;
   week: number;

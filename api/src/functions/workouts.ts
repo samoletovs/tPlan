@@ -6,6 +6,8 @@ const DAY_NAMES: Record<number, string> = {
   4: 'Thursday', 5: 'Friday', 6: 'Saturday',
 };
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const STREAK_GAP_TOLERANCE_DAYS = 1.5;
 
 // GET /api/workouts — list user's workouts
 app.http('getWorkouts', {
@@ -100,7 +102,16 @@ app.http('generateWorkout', {
       todaySlots = todaySlots.filter((s: any) => s.slot === 'evening');
     }
     if (todaySlots.length === 0) {
-      return { status: 200, jsonBody: { rest: true, date, day: DAY_NAMES[dayIdx], message: 'Rest day — no workouts scheduled.' } };
+      return {
+        status: 200,
+        jsonBody: {
+          restDay: true,
+          rest: true,
+          date,
+          day: DAY_NAMES[dayIdx],
+          message: 'Rest day — no workouts scheduled.',
+        },
+      };
     }
 
     // 3. Get programs data
@@ -151,13 +162,13 @@ app.http('generateWorkout', {
     const logDates = [...new Set(recentLogs.map(l => l.date))].sort((a, b) => b.localeCompare(a));
     let streak = 0;
     if (logDates.length > 0) {
-      const yesterday = new Date(new Date(date).getTime() - 86400000).toISOString().split('T')[0];
+      const yesterday = getLocalDateKey(new Date(new Date(date).getTime() - MS_PER_DAY));
       if (logDates[0] === date || logDates[0] === yesterday) {
         streak = 1;
         for (let i = 1; i < logDates.length; i++) {
           const d1 = new Date(logDates[i - 1]).getTime();
           const d2 = new Date(logDates[i]).getTime();
-          if ((d1 - d2) / 86400000 <= 1.5) streak++;
+          if ((d1 - d2) / MS_PER_DAY <= STREAK_GAP_TOLERANCE_DAYS) streak++;
           else break;
         }
       }
@@ -382,6 +393,12 @@ function buildProgramSteps(
   return steps;
 }
 
+function getLocalDateKey(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 function buildWarmup(): any {
   return {
     type: 'warmup',

@@ -16,6 +16,9 @@ app.http('trackLogin', {
       const provider = principal.identityProvider || 'unknown';
       const timestamp = new Date().toISOString();
 
+      // Skip notifications for the owner
+      if (email === 'd.146099412+samoletovs@users.noreply.github.comgmail.com') return { status: 200, jsonBody: { ok: true } };
+
       await fetch(TELEGRAM_NOTIFY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

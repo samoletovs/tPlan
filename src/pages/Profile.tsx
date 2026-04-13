@@ -17,15 +17,17 @@ export default function Profile() {
   const { user, logout } = useAuth();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function changeLanguage(code: Locale) {
     i18n.changeLanguage(code);
     setSaving(true);
+    setError(null);
     try {
       await updateUser({ locale: code });
       showSaved();
     } catch {
-      // offline — language still changed locally
+      setError(t('error.apiError'));
     } finally {
       setSaving(false);
     }
@@ -34,13 +36,14 @@ export default function Profile() {
   async function updatePreference(key: keyof UserPreferences, value: UserPreferences[keyof UserPreferences]) {
     if (!user) return;
     setSaving(true);
+    setError(null);
     try {
       await updateUser({
         preferences: { ...user.preferences, [key]: value },
       });
       showSaved();
     } catch {
-      // silent
+      setError(t('error.apiError'));
     } finally {
       setSaving(false);
     }
@@ -67,6 +70,8 @@ export default function Profile() {
   return (
     <div>
       <h2 className="mb-lg">{t('profile.title')}</h2>
+
+      {error && <div className="error-toast mb-sm">{error}</div>}
 
       {/* User info */}
       <div className="card">

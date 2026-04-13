@@ -15,6 +15,7 @@ export default function Schedule() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<DayOfWeek | null>(null);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([getSchedule(), getPrograms()])
@@ -28,6 +29,8 @@ export default function Schedule() {
 
   async function handleToggleSlot(day: DayOfWeek, programId: string, slot: string) {
     if (!schedule) return;
+    setError(null);
+    const previousSchedule = schedule;
     const current = schedule.weeklySchedule[day];
     const exists = current.some(s => s.programId === programId && s.slot === slot);
     const updated = exists
@@ -44,7 +47,8 @@ export default function Schedule() {
     try {
       await updateSchedule({ weeklySchedule: newSchedule.weeklySchedule });
     } catch {
-      // revert silently
+      setSchedule(previousSchedule);
+      setError(t('error.apiError'));
     } finally {
       setSaving(false);
     }
@@ -83,6 +87,8 @@ export default function Schedule() {
           {t('common.saving')}
         </div>
       )}
+
+      {error && <div className="error-toast mb-sm">{error}</div>}
 
       <div className="flex-col gap-sm">
         {DAYS.map(day => {

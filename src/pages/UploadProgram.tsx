@@ -323,8 +323,12 @@ export default function UploadProgram() {
                         max={10}
                         value={ex.defaultSets}
                         onChange={e => {
+                          const parsed = Number.parseInt(e.target.value, 10);
                           const updated = [...editExercises];
-                          updated[i] = { ...updated[i], defaultSets: parseInt(e.target.value) || 1 };
+                          updated[i] = {
+                            ...updated[i],
+                            defaultSets: Number.isNaN(parsed) ? 1 : parsed,
+                          };
                           setEditExercises(updated);
                         }}
                         aria-label={t('upload.sets')}
@@ -339,8 +343,12 @@ export default function UploadProgram() {
                         max={999}
                         value={ex.defaultReps}
                         onChange={e => {
+                          const parsed = Number.parseInt(e.target.value, 10);
                           const updated = [...editExercises];
-                          updated[i] = { ...updated[i], defaultReps: parseInt(e.target.value) || 1 };
+                          updated[i] = {
+                            ...updated[i],
+                            defaultReps: Number.isNaN(parsed) ? 1 : parsed,
+                          };
                           setEditExercises(updated);
                         }}
                         aria-label={t('upload.reps')}
