@@ -17,7 +17,7 @@ app.http('trackLogin', {
       const timestamp = new Date().toISOString();
 
       // Skip notifications for the owner
-      if (email === 'd.146099412+samoletovs@users.noreply.github.comgmail.com') return { status: 200, jsonBody: { ok: true } };
+      if (process.env.OWNER_EMAIL && email === process.env.OWNER_EMAIL) return { status: 200, jsonBody: { ok: true } };
 
       await fetch(TELEGRAM_NOTIFY_URL, {
         method: 'POST',

@@ -43,7 +43,7 @@ tPlan/
 - i18n: All user-facing text via `useTranslation()` hook
 
 ## Environment
-- Azure subscription: Visual Studio Enterprise (146099412+samoletovs@users.noreply.github.com)
+- Azure subscription: Visual Studio Enterprise
 - Azure region: northeurope
 - GitHub: samoletovs/tPlan (private)
 - Push to `main` branch
