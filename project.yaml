@@ -1,0 +1,23 @@
+name: tPlan
+purpose: "AI training coach — generates progressive workout programs by parsing training methodology books"
+users: "Fitness enthusiasts, gym-goers, strength athletes"
+stage: active
+goals:
+  - "AI-driven program generation from training books"
+  - "Progress tracking (reps, difficulty, body weight)"
+  - "Auto-progression based on source book rules"
+  - "Multi-language support (EN, RU, LV, ES)"
+  - "Social challenges and leaderboards"
+similar:
+  - "Fitbod"
+  - "Strong"
+  - "TrainHeroic"
+  - "Jefit"
+quality:
+  - tests
+  - ci-cd
+  - responsive
+  - api
+  - i18n
+  - pwa
+  - auth
