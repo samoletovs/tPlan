@@ -22,16 +22,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    void fetchAuth(() => cancelled);
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   async function fetchAuth(isCancelled: () => boolean) {
     try {
       const res = await fetch('/.auth/me');
@@ -66,6 +56,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isCancelled()) setLoading(false);
     }
   }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchAuth(() => cancelled);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function login() {
     window.location.href = '/.auth/login/google?post_login_redirect_uri=/app';

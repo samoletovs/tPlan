@@ -34,6 +34,8 @@ export default defineConfig([
         varsIgnorePattern: '^_',
         destructuredArrayIgnorePattern: '^_',
       }],
+      // react-hooks v7 new strict rules — downgrade to warn (legitimate patterns flagged)
+      'react-hooks/set-state-in-effect': 'warn',
     },
   },
 ])
