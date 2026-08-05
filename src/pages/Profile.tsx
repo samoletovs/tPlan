@@ -3,24 +3,19 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { updateUser } from '../services/api';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 import type { Locale, UserPreferences } from '../types';
-
-const LANGUAGES: { code: Locale; label: string }[] = [
-  { code: 'en', label: 'English' },
-  { code: 'ru', label: 'Русский' },
-];
 
 const DIFFICULTIES = ['easy', 'normal', 'hard'] as const;
 
 export default function Profile() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function changeLanguage(code: Locale) {
-    i18n.changeLanguage(code);
     setSaving(true);
     setError(null);
     try {
@@ -89,19 +84,7 @@ export default function Profile() {
       {/* Language */}
       <div className="card">
         <label className="label">{t('profile.language')}</label>
-        <div className="lang-switcher">
-          {LANGUAGES.map(lang => (
-            <button
-              key={lang.code}
-              className={`lang-btn${i18n.language === lang.code ? ' active' : ''}`}
-              onClick={() => changeLanguage(lang.code)}
-              disabled={saving}
-              aria-label={lang.label}
-            >
-              {lang.label}
-            </button>
-          ))}
-        </div>
+        <LanguageSwitcher onChange={changeLanguage} disabled={saving} />
         {saved && (
           <div className="saved-indicator">
             {t('profile.saved')}

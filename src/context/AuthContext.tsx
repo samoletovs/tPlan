@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import i18n from '../i18n';
+import { isSupportedLocale } from '../i18n/languages';
 import type { User, ClientPrincipal } from '../types';
 
 interface AuthContextType {
@@ -16,6 +18,14 @@ const AuthContext = createContext<AuthContextType>({
   login: () => {},
   logout: () => {},
 });
+
+/** Applies the user's saved locale to the UI, if it is a supported one. */
+function applyLocale(user: User | null) {
+  const locale = user?.locale;
+  if (isSupportedLocale(locale) && i18n.resolvedLanguage !== locale) {
+    void i18n.changeLanguage(locale);
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [principal, setPrincipal] = useState<ClientPrincipal | null>(null);
@@ -38,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const userData = await userRes.json();
           if (isCancelled()) return;
           setUser(userData);
+          applyLocale(userData);
 
           // Auto-seed if no schedule exists (first login)
           if (!userData.enrolledPrograms || userData.enrolledPrograms.length === 0) {
@@ -45,8 +56,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               await fetch('/api/seed', { method: 'POST' });
               // Reload user after seed
               const reloadRes = await fetch('/api/user');
-              if (reloadRes.ok && !isCancelled()) setUser(await reloadRes.json());
-            } catch { /* seed failed — non-critical */ }
+              if (reloadRes.ok && !isCancelled()) {
+                const reloaded = await reloadRes.json();
+                setUser(reloaded);
+                applyLocale(reloaded);
+              }
+            } catch {
+              /* seed failed — non-critical */
+            }
           }
         }
       }

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
+import LanguageSwitcher from '../components/LanguageSwitcher';
 
 export default function Landing() {
   const { t } = useTranslation();
@@ -27,6 +28,8 @@ export default function Landing() {
   return (
     <div className="landing">
       <div className="lab-badge">{t('landing.labBadge')}</div>
+
+      <LanguageSwitcher />
 
       <h1>
         {t('landing.hero')}

@@ -1,6 +1,8 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId, getUserEmail } from '../db.js';
 
+const SUPPORTED_LOCALES = ['en', 'ru', 'lv', 'es'];
+
 const DEFAULT_PREFERENCES = {
   defaultDifficulty: 'easy',
   restTimerEnabled: true,
@@ -82,7 +84,9 @@ app.http('updateUser', {
       const merged: Record<string, unknown> = { ...entity };
 
       if (updates.displayName) merged.displayName = updates.displayName;
-      if (updates.locale) merged.locale = updates.locale;
+      if (typeof updates.locale === 'string' && SUPPORTED_LOCALES.includes(updates.locale)) {
+        merged.locale = updates.locale;
+      }
       if (updates.preferences) merged.preferences = JSON.stringify(updates.preferences);
       if (updates.currentLevels) merged.currentLevels = JSON.stringify(updates.currentLevels);
       if (updates.enrolledPrograms) merged.enrolledPrograms = JSON.stringify(updates.enrolledPrograms);

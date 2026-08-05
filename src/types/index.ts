@@ -1,5 +1,5 @@
 // ===== Locale =====
-export type Locale = 'en' | 'ru';
+export type Locale = 'en' | 'ru' | 'lv' | 'es';
 export type LocaleMap = Record<Locale, string>;
 
 // ===== User =====
