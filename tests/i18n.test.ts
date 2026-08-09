@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { LANGUAGES, SUPPORTED_LOCALES, isSupportedLocale, normalizeLocale } from '../src/i18n/languages';
+import i18n from '../src/i18n';
 
 function flatten(obj: Record<string, unknown>, prefix = ''): string[] {
   return Object.entries(obj).flatMap(([key, value]) => {
@@ -13,6 +14,15 @@ function flatten(obj: Record<string, unknown>, prefix = ''): string[] {
 
 function loadLocale(code: string): Record<string, unknown> {
   return JSON.parse(readFileSync(new URL(`../src/i18n/${code}.json`, import.meta.url), 'utf8'));
+}
+
+function profileLanguageLabel(code: string): string {
+  const profile = loadLocale(code).profile as Record<string, unknown> | undefined;
+  const value = profile?.language;
+  if (typeof value !== 'string' || value.length === 0) {
+    throw new Error(`${code}.json is missing profile.language`);
+  }
+  return value;
 }
 
 describe('i18n — supported languages', () => {
@@ -51,6 +61,23 @@ describe('i18n — isSupportedLocale', () => {
     expect(isSupportedLocale('lv')).toBe(true);
     expect(isSupportedLocale('de')).toBe(false);
     expect(isSupportedLocale(null)).toBe(false);
+  });
+});
+
+describe('i18n — runtime language changes', () => {
+  it('switches translations when a supported language is selected', async () => {
+    const previous = normalizeLocale(i18n.resolvedLanguage || i18n.language);
+    const expectedLabel = profileLanguageLabel('ru');
+
+    expect(expectedLabel).not.toBe(profileLanguageLabel('en'));
+
+    try {
+      await i18n.changeLanguage('ru');
+      expect(i18n.resolvedLanguage).toBe('ru');
+      expect(i18n.t('profile.language')).toBe(expectedLabel);
+    } finally {
+      await i18n.changeLanguage(previous || 'en');
+    }
   });
 });
 

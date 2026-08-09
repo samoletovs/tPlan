@@ -12,10 +12,10 @@ export default function LanguageSwitcher({ onChange, disabled = false }: Languag
   const { t, i18n } = useTranslation();
   const active = normalizeLocale(i18n.resolvedLanguage || i18n.language);
 
-  function select(code: Locale) {
-    if (code !== active) {
-      void i18n.changeLanguage(code);
-    }
+  async function select(code: Locale) {
+    if (code === active) return;
+
+    await i18n.changeLanguage(code);
     onChange?.(code);
   }
 
@@ -26,7 +26,7 @@ export default function LanguageSwitcher({ onChange, disabled = false }: Languag
           key={lang.code}
           type="button"
           className={`lang-btn${active === lang.code ? ' active' : ''}`}
-          onClick={() => select(lang.code)}
+          onClick={() => void select(lang.code)}
           disabled={disabled}
           aria-pressed={active === lang.code}
           aria-label={lang.label}
