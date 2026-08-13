@@ -63,6 +63,8 @@ export interface Workout {
   createdAt: string;
   completed: boolean;
   motivation?: string;
+  /** Language the workout content was generated in. */
+  locale?: Locale;
 }
 
 export interface RestDayResponse {

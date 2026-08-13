@@ -92,7 +92,9 @@
     "exercises": "vingrinājumi",
     "steps": "soļi",
     "exerciseList": "Vingrinājumi",
-    "notePlaceholder": "Kādas korekcijas? (piem., izlaist kājas, fokuss uz rokām, sāp plaukstas locītava...)"
+    "notePlaceholder": "Kādas korekcijas? (piem., izlaist kājas, fokuss uz rokām, sāp plaukstas locītava...)",
+    "repsCount": "{{n}} atk.",
+    "secondsCount": "{{n}} s"
   },
   "summary": {
     "title": "Treniņš pabeigts!",
@@ -202,7 +204,9 @@
     "reps": "Atkārtojumi",
     "sets": "Pieejas",
     "exerciseName": "Vingrinājuma nosaukums",
-    "noExercises": "Nav vingrinājumu. Lai saglabātu, nepieciešams vismaz viens."
+    "noExercises": "Nav vingrinājumu. Lai saglabātu, nepieciešams vismaz viens.",
+    "extractError": "No šī faila neizdevās izgūt programmu.",
+    "saveError": "Neizdevās saglabāt programmu."
   },
   "schedule": {
     "title": "Nedēļas grafiks",
@@ -241,7 +245,8 @@
     "title": "Kaut kas nogāja greizi",
     "generic": "Radās neparedzēta kļūda.",
     "returnButton": "Atgriezties panelī",
-    "apiError": "Neizdevās izveidot savienojumu ar serveri. Lūdzu, mēģini vēlreiz."
+    "apiError": "Neizdevās izveidot savienojumu ar serveri. Lūdzu, mēģini vēlreiz.",
+    "sessionExpired": "Sesija ir beigusies. Pierakstieties vēlreiz, lai saglabātu treniņa rezultātus."
   },
   "exercises": {
     "pushups-l1": "Atspiešanās pret sienu",

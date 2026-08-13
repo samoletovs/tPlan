@@ -5,6 +5,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement
 import { Line, Bar } from 'react-chartjs-2';
 import { getDashboard, getSchedule, getPrograms } from '../services/api';
 import type { DashboardStats, ScheduleSlot, Program, DayOfWeek } from '../types';
+import { formatShortDate } from '../utils/format';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend, Filler);
 
@@ -21,7 +22,8 @@ const chartOptions = {
 };
 
 export default function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage || i18n.language;
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [todayPrograms, setTodayPrograms] = useState<string[]>([]);
@@ -96,7 +98,7 @@ export default function Dashboard() {
 
   // Weight chart data
   const weightData = stats.weightHistory.length > 0 ? {
-    labels: stats.weightHistory.map(w => new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })),
+    labels: stats.weightHistory.map(w => formatShortDate(w.date, locale)),
     datasets: [{
       data: stats.weightHistory.map(w => w.weight),
       borderColor: 'var(--accent)', backgroundColor: 'rgba(37, 99, 235, 0.06)',
@@ -126,7 +128,7 @@ export default function Dashboard() {
   };
 
   // Reps per exercise chart
-  const repsData = stats.repsPerExercise.length > 0 ? buildRepsChart(stats.repsPerExercise) : null;
+  const repsData = stats.repsPerExercise.length > 0 ? buildRepsChart(stats.repsPerExercise, locale) : null;
 
   const repsLegendOptions = {
     ...chartOptions,
@@ -147,7 +149,7 @@ export default function Dashboard() {
 
   // Difficulty distribution chart
   const diffData = stats.difficultyDistribution.length > 0 ? {
-    labels: stats.difficultyDistribution.map(d => new Date(d.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })),
+    labels: stats.difficultyDistribution.map(d => formatShortDate(d.date, locale)),
     datasets: [
       { label: t('workout.easy'), data: stats.difficultyDistribution.map(d => d.easy), backgroundColor: 'rgba(52, 199, 89, 0.7)' },
       { label: t('workout.normal'), data: stats.difficultyDistribution.map(d => d.normal), backgroundColor: 'rgba(37, 99, 235, 0.7)' },
@@ -240,10 +242,10 @@ export default function Dashboard() {
 
 const EXERCISE_COLORS = ['#2563EB', '#34C759', '#FF9500', '#FF3B30', '#AF52DE', '#5AC8FA'];
 
-function buildRepsChart(data: { date: string; exercise: string; reps: number }[]) {
+function buildRepsChart(data: { date: string; exercise: string; reps: number }[], locale: string) {
   const exerciseNames = [...new Set(data.map(d => d.exercise))];
   const dates = [...new Set(data.map(d => d.date))].sort();
-  const labels = dates.map(d => new Date(d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }));
+  const labels = dates.map(d => formatShortDate(d, locale));
 
   const datasets = exerciseNames.map((name, i) => ({
     label: name,

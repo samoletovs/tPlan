@@ -82,7 +82,7 @@ export default function WorkoutPage() {
         }
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to load workouts';
+      const msg = err instanceof Error ? err.message : t('error.apiError');
       setError(msg);
     } finally {
       setLoading(false);
@@ -102,7 +102,7 @@ export default function WorkoutPage() {
         setWorkout(response);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to generate workout';
+      const msg = err instanceof Error ? err.message : t('error.apiError');
       setError(msg);
     } finally {
       setGenerating(false);
@@ -159,7 +159,7 @@ export default function WorkoutPage() {
   async function handleSave(bodyWeight: number | null, notes: string) {
     if (!workout) return;
     if (!user?.userId) {
-      throw new Error('Sign in again to save workout progress.');
+      throw new Error(t('error.sessionExpired'));
     }
 
     const durationMin = Math.round((Date.now() - startTimeRef.current) / 60000);
@@ -227,7 +227,7 @@ export default function WorkoutPage() {
                     <div>
                       <div className="font-medium text-primary">{program?.name ?? slot.programId}</div>
                       <div className="text-xs text-tertiary">
-                        {t(`schedule.slot.${slot.slot}`, { defaultValue: `Day ${slot.slot}` })}
+                        {t(`schedule.slot.${slot.slot}`, { defaultValue: slot.slot })}
                       </div>
                     </div>
                     <span className="slot-badge slot-morning">{slot.slot}</span>
@@ -258,7 +258,7 @@ export default function WorkoutPage() {
                     <div>
                       <div className="font-medium text-primary">{program?.name ?? slot.programId}</div>
                       <div className="text-xs text-tertiary">
-                        {t(`schedule.slot.${slot.slot}`, { defaultValue: 'Evening' })}
+                        {t(`schedule.slot.${slot.slot}`, { defaultValue: slot.slot })}
                       </div>
                     </div>
                     <span className="slot-badge slot-evening">{t('workout.evening')}</span>
@@ -325,7 +325,9 @@ export default function WorkoutPage() {
             <div key={i} className="exercise-row" style={{ fontSize: '0.875rem' }}>
               <span className="text-body">{step.name}</span>
               <span className="text-tertiary">
-                {'timer' in step && step.timer ? `${step.planned}s` : `${step.planned} reps`}
+                {'timer' in step && step.timer
+                  ? t('workout.secondsCount', { n: step.planned })
+                  : t('workout.repsCount', { n: step.planned })}
               </span>
             </div>
           ))}

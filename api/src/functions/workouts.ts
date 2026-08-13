@@ -1,10 +1,6 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId } from '../db.js';
-
-const DAY_NAMES: Record<number, string> = {
-  0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday',
-  4: 'Thursday', 5: 'Friday', 6: 'Saturday',
-};
+import { LANGUAGE_NAMES, resolveLocale, t, type Locale } from '../i18n.js';
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const STREAK_GAP_TOLERANCE_DAYS = 1.5;
@@ -67,18 +63,23 @@ app.http('generateWorkout', {
     const userNote = body.userNote || ''; // user's pre-workout note/adjustment request
     const dayIdx = new Date(date).getDay();
     const dayKey = DAY_KEYS[dayIdx];
+    const acceptLanguage = req.headers.get('accept-language');
 
     // 1. Get user profile + levels
     const userTable = getTable('tplanUsers');
     let user: any;
+    let locale: Locale;
     try {
       const entity = await userTable.getEntity(userId, 'profile');
       user = {
+        locale: entity.locale as string || undefined,
         currentLevels: JSON.parse(entity.currentLevels as string || '{}'),
         preferences: JSON.parse(entity.preferences as string || '{}'),
       };
+      locale = resolveLocale(user.locale, acceptLanguage);
     } catch {
-      return { status: 404, jsonBody: { error: 'User not found. Visit /app/profile first.' } };
+      const fallbackLocale = resolveLocale(undefined, acceptLanguage);
+      return { status: 404, jsonBody: { error: t(fallbackLocale, 'error.userNotFound') } };
     }
 
     // 2. Get schedule for this day
@@ -91,7 +92,7 @@ app.http('generateWorkout', {
         programs: JSON.parse(entity.programs as string || '[]'),
       };
     } catch {
-      return { status: 400, jsonBody: { error: 'No schedule configured. Set up your weekly plan first.' } };
+      return { status: 400, jsonBody: { error: t(locale, 'error.noSchedule') } };
     }
 
     let todaySlots = schedule.weeklySchedule[dayKey] || [];
@@ -108,8 +109,8 @@ app.http('generateWorkout', {
           restDay: true,
           rest: true,
           date,
-          day: DAY_NAMES[dayIdx],
-          message: 'Rest day — no workouts scheduled.',
+          day: t(locale, `day.${dayIdx}`),
+          message: t(locale, 'workout.restDay'),
         },
       };
     }
@@ -220,16 +221,16 @@ app.http('generateWorkout', {
       // Apply progression rules, rest filtering, and rotation
       const maxPerSession = program.progressionRules?.maxExercisesPerSession || 10;
       const defaultRestDays = program.progressionRules?.restDaysBetweenSameMuscle ?? 1;
-      const steps = buildProgramSteps(program, levels, trainingDayType, previousResults, exerciseLastDone, todayMs, maxPerSession, defaultRestDays);
+      const steps = buildProgramSteps(program, levels, trainingDayType, previousResults, exerciseLastDone, todayMs, maxPerSession, defaultRestDays, locale);
       allSteps.push(...steps);
       titles.push(`${program.name}${trainingDayType ? ` (${program.trainingDays?.[trainingDayType]?.label || trainingDayType})` : ''}`);
     }
 
     // Add warmup at start, cooldown at end
     const steps = [
-      buildWarmup(),
+      buildWarmup(locale),
       ...allSteps,
-      buildCooldown(),
+      buildCooldown(locale),
     ];
 
     const weekNum = Math.ceil(
@@ -240,7 +241,7 @@ app.http('generateWorkout', {
       id: `${userId}-${date}`,
       userId,
       date,
-      day: DAY_NAMES[dayIdx],
+      day: t(locale, `day.${dayIdx}`),
       week: weekNum,
       title: titles.join(' + '),
       type: todaySlots[0]?.slot || 'custom',
@@ -250,6 +251,7 @@ app.http('generateWorkout', {
       programIds: todaySlots.map((s: any) => s.programId),
       createdAt: new Date().toISOString(),
       completed: false,
+      locale,
       userNote: userNote || undefined,
     };
 
@@ -260,7 +262,7 @@ app.http('generateWorkout', {
 
     if (endpoint && key && deployment) {
       try {
-        const enhanced = await enhanceWithAI(endpoint, key, deployment, workout, user);
+        const enhanced = await enhanceWithAI(endpoint, key, deployment, workout, user, locale);
         if (enhanced) {
           // AI only adds motivational notes, doesn't change structure
           for (let i = 0; i < workout.steps.length; i++) {
@@ -294,6 +296,7 @@ function buildProgramSteps(
   todayMs: number,
   maxPerSession: number,
   defaultRestDays: number,
+  locale: Locale,
 ): any[] {
   const DAY_MS = 86400000;
 
@@ -364,7 +367,7 @@ function buildProgramSteps(
       steps.push({
         type: 'exercise',
         name,
-        meta: `Hold · ${exLevel.durationSec || exLevel.reps}s`,
+        meta: t(locale, 'meta.hold', { seconds: exLevel.durationSec || exLevel.reps }),
         technique,
         tempo: 'hold',
         timer: exLevel.durationSec || exLevel.reps,
@@ -378,8 +381,10 @@ function buildProgramSteps(
         steps.push({
           type: 'exercise',
           name,
-          meta: `Level ${exLevel.level} · Set ${s} of ${exLevel.sets}`,
-          technique: s === 1 ? technique : `Tempo ${exercise.tempo || '2-1-2'}. Maintain form throughout.`,
+          meta: t(locale, 'meta.set', { level: exLevel.level, set: s, total: exLevel.sets }),
+          technique: s === 1
+            ? technique
+            : t(locale, 'technique.tempo', { tempo: exercise.tempo || '2-1-2' }),
           tempo: exercise.tempo || '2-1-2',
           planned: exLevel.reps,
           rest: exercise.restBetweenSets || 60,
@@ -399,39 +404,41 @@ function getLocalDateKey(date: Date = new Date()): string {
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
-function buildWarmup(): any {
+function buildWarmup(locale: Locale): any {
   return {
     type: 'warmup',
-    name: 'Warmup',
+    name: t(locale, 'warmup.name'),
     items: [
-      { text: 'Walking in place — 1 min', desc: 'Brisk steps, raise your knees.', timer: 60 },
-      { text: 'Arm circles — 10 each direction', desc: 'Straight arms, maximum range.' },
-      { text: 'Elbow circles — 10 each', desc: 'Arms forward, rotate forearms.' },
-      { text: 'Torso bends — 5 each direction', desc: 'Standing straight, lean forward, back, sides.' },
-      { text: 'Hip circles — 10 each direction', desc: 'Hands on hips, wide circles.' },
+      { text: t(locale, 'warmup.1.text'), desc: t(locale, 'warmup.1.desc'), timer: 60 },
+      { text: t(locale, 'warmup.2.text'), desc: t(locale, 'warmup.2.desc') },
+      { text: t(locale, 'warmup.3.text'), desc: t(locale, 'warmup.3.desc') },
+      { text: t(locale, 'warmup.4.text'), desc: t(locale, 'warmup.4.desc') },
+      { text: t(locale, 'warmup.5.text'), desc: t(locale, 'warmup.5.desc') },
     ],
   };
 }
 
-function buildCooldown(): any {
+function buildCooldown(locale: Locale): any {
   return {
     type: 'cooldown',
-    name: 'Cooldown & Stretch',
+    name: t(locale, 'cooldown.name'),
     items: [
-      { text: 'Chest stretch — 20s per side', desc: 'Forearm against doorframe, lean forward.', timer: 40 },
-      { text: 'Quad stretch — 20s per leg', desc: 'Pull heel to glute, keep knees together.', timer: 40 },
-      { text: 'Seated forward fold — 30s', desc: 'Legs straight, reach for toes.', timer: 30 },
-      { text: 'Hip flexor stretch — 20s per side', desc: 'Knee on floor, other leg at 90°.', timer: 40 },
-      { text: 'Cat-cow — 10 reps', desc: 'On all fours: arch down (inhale), round up (exhale).' },
-      { text: 'Lying spinal twist — 20s per side', desc: 'On back, cross leg over.', timer: 40 },
-      { text: "Child's pose — 30s", desc: 'Sit on heels, arms forward.', timer: 30 },
+      { text: t(locale, 'cooldown.1.text'), desc: t(locale, 'cooldown.1.desc'), timer: 40 },
+      { text: t(locale, 'cooldown.2.text'), desc: t(locale, 'cooldown.2.desc'), timer: 40 },
+      { text: t(locale, 'cooldown.3.text'), desc: t(locale, 'cooldown.3.desc'), timer: 30 },
+      { text: t(locale, 'cooldown.4.text'), desc: t(locale, 'cooldown.4.desc'), timer: 40 },
+      { text: t(locale, 'cooldown.5.text'), desc: t(locale, 'cooldown.5.desc') },
+      { text: t(locale, 'cooldown.6.text'), desc: t(locale, 'cooldown.6.desc'), timer: 40 },
+      { text: t(locale, 'cooldown.7.text'), desc: t(locale, 'cooldown.7.desc'), timer: 30 },
     ],
   };
 }
 
-async function enhanceWithAI(endpoint: string, key: string, deployment: string, workout: any, user: any) {
+async function enhanceWithAI(endpoint: string, key: string, deployment: string, workout: any, user: any, locale: Locale) {
   const userNoteSection = workout.userNote ? `\nUser's note for today: "${workout.userNote}" — take this into consideration in your tips.` : '';
-  const prompt = `Add brief motivational coaching tips to this workout. Return JSON with:
+  const prompt = `Add brief motivational coaching tips to this workout.
+Write every value of the returned JSON in ${LANGUAGE_NAMES[locale]} — the user reads the app in that language.
+Return JSON with:
 - "motivation": a short motivational message for today
 - "tips": array of strings (one per step, empty string for warmup/cooldown)
 Workout: ${workout.title}, streak: ${workout.streak}, date: ${workout.date}${userNoteSection}

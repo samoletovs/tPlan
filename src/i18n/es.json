@@ -92,7 +92,9 @@
     "exercises": "ejercicios",
     "steps": "pasos",
     "exerciseList": "Ejercicios",
-    "notePlaceholder": "¿Algún ajuste? (p. ej., saltar piernas, enfocarse en brazos, duele la muñeca...)"
+    "notePlaceholder": "¿Algún ajuste? (p. ej., saltar piernas, enfocarse en brazos, duele la muñeca...)",
+    "repsCount": "{{n}} reps",
+    "secondsCount": "{{n}} s"
   },
   "summary": {
     "title": "¡Entrenamiento completado!",
@@ -202,7 +204,9 @@
     "reps": "Repeticiones",
     "sets": "Series",
     "exerciseName": "Nombre del ejercicio",
-    "noExercises": "No hay ejercicios. Se requiere al menos uno para guardar."
+    "noExercises": "No hay ejercicios. Se requiere al menos uno para guardar.",
+    "extractError": "No se pudo extraer un programa de este archivo.",
+    "saveError": "No se pudo guardar el programa."
   },
   "schedule": {
     "title": "Horario semanal",
@@ -241,7 +245,8 @@
     "title": "Algo salió mal",
     "generic": "Se produjo un error inesperado.",
     "returnButton": "Volver al panel",
-    "apiError": "No se pudo conectar con el servidor. Inténtalo de nuevo."
+    "apiError": "No se pudo conectar con el servidor. Inténtalo de nuevo.",
+    "sessionExpired": "Tu sesión ha caducado. Inicia sesión de nuevo para guardar el entrenamiento."
   },
   "exercises": {
     "pushups-l1": "Flexiones en pared",

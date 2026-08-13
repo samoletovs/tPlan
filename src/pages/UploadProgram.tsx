@@ -76,7 +76,7 @@ export default function UploadProgram() {
           const result = await extractProgramFromText(base64, file.name);
           applyExtractionResult(result);
         } catch (err: unknown) {
-          const msg = err instanceof Error ? err.message : 'Extraction failed';
+          const msg = err instanceof Error ? err.message : t('upload.extractError');
           setError(msg);
           setStep('upload');
         }
@@ -99,7 +99,7 @@ export default function UploadProgram() {
       const result = await extractProgramFromText(text, file.name);
       applyExtractionResult(result);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Extraction failed';
+      const msg = err instanceof Error ? err.message : t('upload.extractError');
       setError(msg);
       setStep('upload');
     }
@@ -121,7 +121,7 @@ export default function UploadProgram() {
       await createProgram(toSave);
       navigate('/app/programs');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Save failed';
+      const msg = err instanceof Error ? err.message : t('upload.saveError');
       setError(msg);
       setStep('review');
     }

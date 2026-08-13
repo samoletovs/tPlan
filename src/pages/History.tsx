@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { getLogs } from '../services/api';
 import type { WorkoutLog } from '../types';
+import { formatDate } from '../utils/format';
 
 export default function History() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = i18n.resolvedLanguage || i18n.language;
   const [logs, setLogs] = useState<WorkoutLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export default function History() {
               <div>
                 <div className="font-medium text-primary">{log.workout}</div>
                 <div className="text-xs text-tertiary">
-                  {new Date(log.date).toLocaleDateString()} · {t('history.minutes', { count: log.durationMin })}
+                  {formatDate(log.date, locale)} · {t('history.minutes', { count: log.durationMin })}
                 </div>
               </div>
               <div className="flex gap-sm items-center">

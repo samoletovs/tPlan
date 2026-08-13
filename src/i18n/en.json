@@ -92,7 +92,9 @@
     "exercises": "exercises",
     "steps": "steps",
     "exerciseList": "Exercises",
-    "notePlaceholder": "Any adjustments? (e.g. skip legs, focus on arms, wrist hurts...)"
+    "notePlaceholder": "Any adjustments? (e.g. skip legs, focus on arms, wrist hurts...)",
+    "repsCount": "{{n}} reps",
+    "secondsCount": "{{n}}s"
   },
   "summary": {
     "title": "Workout Complete!",
@@ -202,7 +204,9 @@
     "reps": "Reps",
     "sets": "Sets",
     "exerciseName": "Exercise name",
-    "noExercises": "No exercises. At least one is required to save."
+    "noExercises": "No exercises. At least one is required to save.",
+    "extractError": "Could not extract a program from this file.",
+    "saveError": "Could not save the program."
   },
   "schedule": {
     "title": "Weekly Schedule",
@@ -241,7 +245,8 @@
     "title": "Something went wrong",
     "generic": "An unexpected error occurred.",
     "returnButton": "Return to dashboard",
-    "apiError": "Could not connect to server. Please try again."
+    "apiError": "Could not connect to server. Please try again.",
+    "sessionExpired": "Your session expired. Sign in again to save workout progress."
   },
   "exercises": {
     "pushups-l1": "Wall Push-ups",
