@@ -63,6 +63,41 @@ npm run preview    # Preview production build
 - Frontend built with Vite, API built with tsc
 - Domain: tplan.naurolabs.com
 
+## Memory
+
+tPlan remembers per-user facts between sessions. The shared contract lives in
+[`.github/skills/agent-memory/SKILL.md`](../.github/skills/agent-memory/SKILL.md);
+this is how tPlan implements it.
+
+- **Store**: Azure Table Storage, table `tplanMemory`, partitioned by user id.
+- **Generated files** — `api/src/memory/memory-core.ts` and `memory-store-table.ts` are
+  copied from `.github/config/memory/` by `install-memory.ps1`. Edit the canonical copy
+  and re-run the installer; a governance test compares them byte-for-byte.
+- **tPlan's own files** — `observations.ts` (what a workout reveals, pure) and
+  `index.ts` (store wiring, fences, graceful degradation).
+
+Call sites:
+
+| Path | Where | What |
+|------|-------|------|
+| write | `functions/logs.ts` → `rememberWorkout` | user notes, and unanimous per-exercise difficulty verdicts |
+| read | `functions/workouts.ts` → `recallForPrompt` | injected into the coaching prompt, fenced |
+| control | `functions/memory.ts`, `components/MemoryCard.tsx` | list and delete |
+
+Rules that are not negotiable:
+
+- **Never interpolate memory or a user note into a prompt unfenced.** Both go through
+  `formatForPrompt()` / `fenceUserText()`, which label them as data with a fresh nonce.
+  Memory is an instruction surface (CVE-2025-53773).
+- **Memory is an enhancement, never a dependency.** Every entry point degrades to "no
+  memory" — a user must be able to log a workout and get a plan with storage down.
+- **Do not widen `decideWrite`.** It exists to stop the store becoming a junk drawer.
+  If something is worth remembering, distil it into one sentence rather than logging
+  everything and filtering later.
+- **Do not parse the user's note for keywords.** tPlan is EN/RU/LV/ES; keyword matching
+  would work in English and silently fail for everyone else. Store what the user wrote
+  and let the model interpret it.
+
 ## Key Rules
 - Training materials in `/materials/` are READ-ONLY reference — never modify
 - Progression logic in `utils/progression.ts` is deterministic — must be testable

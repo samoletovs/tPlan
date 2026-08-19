@@ -1,6 +1,7 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId } from '../db.js';
 import { LANGUAGE_NAMES, resolveLocale, t, type Locale } from '../i18n.js';
+import { recallForPrompt, fenceUserText } from '../memory/index.js';
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const STREAK_GAP_TOLERANCE_DAYS = 1.5;
@@ -262,7 +263,13 @@ app.http('generateWorkout', {
 
     if (endpoint && key && deployment) {
       try {
-        const enhanced = await enhanceWithAI(endpoint, key, deployment, workout, user, locale);
+        // The query is what today's session is about, so recall surfaces memories
+        // relevant to these exercises rather than the user's whole history.
+        const memory = await recallForPrompt(
+          userId,
+          `${titles.join(' ')} ${userNote || ''} ${allSteps.map((s: any) => s.name || '').join(' ')}`,
+        );
+        const enhanced = await enhanceWithAI(endpoint, key, deployment, workout, user, locale, memory.block);
         if (enhanced) {
           // AI only adds motivational notes, doesn't change structure
           for (let i = 0; i < workout.steps.length; i++) {
@@ -434,14 +441,19 @@ function buildCooldown(locale: Locale): any {
   };
 }
 
-async function enhanceWithAI(endpoint: string, key: string, deployment: string, workout: any, user: any, locale: Locale) {
-  const userNoteSection = workout.userNote ? `\nUser's note for today: "${workout.userNote}" — take this into consideration in your tips.` : '';
+async function enhanceWithAI(endpoint: string, key: string, deployment: string, workout: any, user: any, locale: Locale, memoryBlock = '') {
+  // The note is the user's own words, so it is untrusted input even though the user is
+  // the person it is shown to. It goes in fenced, exactly like recalled memory.
+  const userNoteSection = workout.userNote
+    ? `\n${fenceUserText("The user's note for today", workout.userNote)}\nTake the note above into consideration in your tips.`
+    : '';
+  const memorySection = memoryBlock ? `\n${memoryBlock}\nUse these remembered facts when they are relevant - especially injuries and limitations.` : '';
   const prompt = `Add brief motivational coaching tips to this workout.
 Write every value of the returned JSON in ${LANGUAGE_NAMES[locale]} — the user reads the app in that language.
 Return JSON with:
 - "motivation": a short motivational message for today
 - "tips": array of strings (one per step, empty string for warmup/cooldown)
-Workout: ${workout.title}, streak: ${workout.streak}, date: ${workout.date}${userNoteSection}
+Workout: ${workout.title}, streak: ${workout.streak}, date: ${workout.date}${userNoteSection}${memorySection}
 Exercises: ${workout.steps.filter((s: any) => s.type === 'exercise').map((s: any) => `${s.name} ${s.planned} reps`).join(', ')}`;
 
   const res = await fetch(`${endpoint}/openai/deployments/${deployment}/chat/completions?api-version=2024-02-01`, {

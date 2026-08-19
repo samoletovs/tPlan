@@ -272,5 +272,18 @@
     "bridges-l4": "Tiltiņi uz galvas",
     "bridges-l5": "Pustiltiņi",
     "plank": "Planka turēšana"
+  },
+  "memory": {
+    "title": "Ko tPlan atceras",
+    "description": "Treneris to izmanto, plānojot nodarbības. Dzēsiet visu, kas ir nepareizs vai novecojis.",
+    "empty": "Pagaidām nekas. Piezīmes, ko pievienosiet treniņam, parādīsies šeit.",
+    "forget": "Aizmirst",
+    "forgetConfirm": "Aizmirst to neatgriezeniski?",
+    "kind": {
+      "fact": "Fakts",
+      "preference": "Izvēle",
+      "correction": "Labojums",
+      "event": "Notikums"
+    }
   }
 }

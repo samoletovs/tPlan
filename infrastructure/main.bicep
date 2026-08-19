@@ -59,6 +59,29 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   }
 }
 
+// ── Tables ────────────────────────────────────────────────────────
+// Declared so the account can be rebuilt from scratch. Until now the tables existed
+// only because someone created them by hand, which meant a fresh deployment came up
+// with an API that fails on first write.
+resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2023-05-01' = {
+  parent: storageAccount
+  name: 'default'
+}
+
+resource tables 'Microsoft.Storage/storageAccounts/tableServices/tables@2023-05-01' = [
+  for tableName in [
+    'tplanUsers'
+    'tplanLogs'
+    'tplanWorkouts'
+    'tplanPrograms'
+    'tplanSchedules'
+    'tplanMemory'
+  ]: {
+    parent: tableService
+    name: tableName
+  }
+]
+
 // ── Monitoring ────────────────────────────────────────────────────
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
   name: '${projectName}-law'

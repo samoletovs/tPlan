@@ -272,5 +272,18 @@
     "bridges-l4": "Head Bridges",
     "bridges-l5": "Half Bridges",
     "plank": "Plank Hold"
+  },
+  "memory": {
+    "title": "What tPlan remembers",
+    "description": "Your coach uses these when planning. Remove anything wrong or out of date.",
+    "empty": "Nothing yet. Notes you add to a workout are remembered here.",
+    "forget": "Forget",
+    "forgetConfirm": "Forget this permanently?",
+    "kind": {
+      "fact": "Fact",
+      "preference": "Preference",
+      "correction": "Correction",
+      "event": "Event"
+    }
   }
 }

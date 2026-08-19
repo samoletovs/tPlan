@@ -1,5 +1,6 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId } from '../db.js';
+import { rememberWorkout } from '../memory/index.js';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const STREAK_GAP_TOLERANCE_DAYS = 1.5;
@@ -32,6 +33,11 @@ app.http('saveLogs', {
 
     // Update user's current levels based on exercise difficulty
     await updateProgression(userId, log);
+
+    // Record what this session revealed about the user. Deliberately after the log is
+    // safely stored: memory is an enhancement, and losing a workout to remember it
+    // would be a bad trade.
+    await rememberWorkout(userId, log);
 
     // Mark workout as completed
     if (body.workoutId) {

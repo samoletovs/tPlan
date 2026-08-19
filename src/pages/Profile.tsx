@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { updateUser } from '../services/api';
 import LanguageSwitcher from '../components/LanguageSwitcher';
+import MemoryCard from '../components/MemoryCard';
 import type { Locale, UserPreferences } from '../types';
 
 const DIFFICULTIES = ['easy', 'normal', 'hard'] as const;
@@ -189,6 +190,9 @@ export default function Profile() {
           </Link>
         </div>
       </div>
+
+      {/* What the coach remembers -- visible and deletable, or it should not be stored */}
+      <MemoryCard onError={setError} />
 
       {/* Logout */}
       <button className="btn btn-secondary mt-sm" onClick={logout} aria-label={t('auth.logout')}>

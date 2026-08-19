@@ -1,6 +1,7 @@
 import type {
   User, Workout, WorkoutLog, DashboardStats,
   ApiResponse, Program, ScheduleData, ExtractionResult, GenerateWorkoutResponse,
+  UserMemory,
 } from '../types';
 
 const BASE = '/api';
@@ -16,6 +17,8 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.error || `API error ${res.status}`);
   }
+  // 204 has no body, and res.json() on an empty body throws.
+  if (res.status === 204) return undefined as T;
   return res.json();
 }
 
@@ -65,3 +68,8 @@ export const getDashboard = () => request<DashboardStats>('/dashboard');
 // ===== Feedback =====
 export const submitFeedback = (data: { type: string; description: string }) =>
   request<ApiResponse<void>>('/feedback', { method: 'POST', body: JSON.stringify(data) });
+
+// ===== Memory =====
+export const getMemory = () => request<UserMemory[]>('/memory');
+export const forgetMemory = (id: string) =>
+  request<void>(`/memory/${encodeURIComponent(id)}`, { method: 'DELETE' });

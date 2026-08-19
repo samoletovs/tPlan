@@ -272,5 +272,18 @@
     "bridges-l4": "Puentes sobre la cabeza",
     "bridges-l5": "Medios puentes",
     "plank": "Plancha"
+  },
+  "memory": {
+    "title": "Lo que tPlan recuerda",
+    "description": "Tu entrenador usa esto al planificar. Elimina lo que sea incorrecto o esté desactualizado.",
+    "empty": "Nada todavía. Las notas que añadas a un entrenamiento aparecerán aquí.",
+    "forget": "Olvidar",
+    "forgetConfirm": "¿Olvidar esto permanentemente?",
+    "kind": {
+      "fact": "Hecho",
+      "preference": "Preferencia",
+      "correction": "Corrección",
+      "event": "Evento"
+    }
   }
 }

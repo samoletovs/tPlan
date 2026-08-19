@@ -246,6 +246,19 @@ export interface ExtractionResult {
   warnings: string[];
 }
 
+// ===== Memory =====
+/** What the coach remembers about this user. Mirrors the API's public shape. */
+export interface UserMemory {
+  id: string;
+  kind: 'preference' | 'fact' | 'correction' | 'event';
+  text: string;
+  confidence: number;
+  importance: number;
+  createdAt: string;
+  lastUsedAt: string;
+  useCount: number;
+}
+
 // ===== Generic API wrapper =====
 export interface ApiResponse<T = void> {
   data?: T;
