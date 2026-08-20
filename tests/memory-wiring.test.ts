@@ -6,6 +6,7 @@ import {
   type WorkoutLog,
 } from '../api/src/memory/observations';
 import {
+  consolidate,
   fenceUserText,
   rememberCandidates,
   recallForPrompt,
@@ -301,6 +302,88 @@ describe('recallForPrompt', () => {
     await recallForPrompt('u1', 'squats today', NOW, store);
     await new Promise((resolve) => setImmediate(resolve));
     expect(store.all()[0].useCount).toBe(1);
+  });
+});
+
+function memory(over: Partial<MemoryRecord> = {}): MemoryRecord {
+  const iso = (days: number) => new Date(NOW.getTime() - days * 86_400_000).toISOString();
+  return {
+    id: 'm1',
+    userId: 'u1',
+    kind: 'fact',
+    text: 'Left knee sore',
+    source: 'logs:note',
+    confidence: 0.8,
+    importance: 0.6,
+    createdAt: iso(1),
+    lastUsedAt: iso(1),
+    useCount: 1,
+    ...over,
+  };
+}
+
+describe('consolidate', () => {
+  it('removes an expired memory from the store', async () => {
+    const dead = memory({ id: 'dead', expiresAt: new Date(NOW.getTime() - 1000).toISOString() });
+    const store = fakeStore([dead]);
+    const plan = await consolidate('u1', await store.list('u1'), NOW, store);
+    expect(plan.drop.map((r) => r.id)).toEqual(['dead']);
+    expect(store.all()).toHaveLength(0);
+  });
+
+  it('never deletes a memory it merely doubts', async () => {
+    const doubted = memory({
+      id: 'old',
+      useCount: 0,
+      createdAt: new Date(NOW.getTime() - 400 * 86_400_000).toISOString(),
+    });
+    const store = fakeStore([doubted]);
+    const plan = await consolidate('u1', await store.list('u1'), NOW, store);
+    expect(plan.review.map((r) => r.id)).toEqual(['old']);
+    expect(store.all()).toHaveLength(1);
+  });
+
+  it('leaves healthy memories alone', async () => {
+    const store = fakeStore([memory({ id: 'good' })]);
+    await consolidate('u1', await store.list('u1'), NOW, store);
+    expect(store.all().map((r) => r.id)).toEqual(['good']);
+  });
+
+  it('keeps pruning after one delete fails', async () => {
+    const a = memory({ id: 'a', expiresAt: new Date(NOW.getTime() - 1000).toISOString() });
+    const b = memory({ id: 'b', expiresAt: new Date(NOW.getTime() - 1000).toISOString() });
+    const deleted: string[] = [];
+    const flaky: MemoryStore = {
+      async list() {
+        return [a, b];
+      },
+      async put() {},
+      async delete(_userId, id) {
+        if (id === 'a') throw new Error('conflict');
+        deleted.push(id);
+      },
+    };
+    await consolidate('u1', [a, b], NOW, flaky);
+    expect(deleted).toEqual(['b']);
+  });
+});
+
+describe('rememberCandidates', () => {
+  it('returns the post-write record set so the caller can consolidate for free', async () => {
+    const store = fakeStore([memory({ id: 'existing', text: 'Prefers mornings' })]);
+    const outcome = await rememberCandidates(
+      'u1',
+      [{ kind: 'fact', text: 'Left elbow sore', source: 'logs:note', confidence: 0.8, importance: 0.7 }],
+      NOW,
+      store,
+    );
+    expect(outcome.written).toBe(1);
+    expect(outcome.records).toHaveLength(2);
+  });
+
+  it('reports no records when there was nothing to learn', async () => {
+    const outcome = await rememberCandidates('u1', [], NOW, fakeStore());
+    expect(outcome.records).toEqual([]);
   });
 });
 

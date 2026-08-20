@@ -9,10 +9,10 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getUserId } from '../db.js';
 import { getMemoryStore } from '../memory/index.js';
-import { isExpired, type MemoryRecord } from '../memory/memory-core.js';
+import { isExpired, planConsolidation, type MemoryRecord } from '../memory/memory-core.js';
 
 /** Only the fields a user needs; `source` is internal provenance, not user-facing. */
-function toPublic(record: MemoryRecord) {
+function toPublic(record: MemoryRecord, needsReview: boolean) {
   return {
     id: record.id,
     kind: record.kind,
@@ -22,6 +22,8 @@ function toPublic(record: MemoryRecord) {
     createdAt: record.createdAt,
     lastUsedAt: record.lastUsedAt,
     useCount: record.useCount,
+    /** Old, never once used. tPlan will not delete it, but it doubts it. */
+    needsReview,
   };
 }
 
@@ -43,10 +45,14 @@ app.http('getMemory', {
         all.map((record) => record.supersedes).filter((id): id is string => Boolean(id)),
       );
 
+      // The consolidation pass flags memories it doubts rather than deleting them. The
+      // user is the only one who can actually settle it, so the doubt is shown to them.
+      const doubted = new Set(planConsolidation(all, { now }).review.map((r) => r.id));
+
       const active = all
         .filter((record) => !superseded.has(record.id) && !isExpired(record, now))
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
-        .map(toPublic);
+        .map((record) => toPublic(record, doubted.has(record.id)));
 
       return { jsonBody: active };
     } catch (err) {

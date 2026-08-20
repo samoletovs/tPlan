@@ -279,6 +279,8 @@
     "empty": "Nothing yet. Notes you add to a workout are remembered here.",
     "forget": "Forget",
     "forgetConfirm": "Forget this permanently?",
+    "stale": "still true?",
+    "staleHint": "Remembered a long time ago and never used since. Keep it or remove it.",
     "kind": {
       "fact": "Fact",
       "preference": "Preference",

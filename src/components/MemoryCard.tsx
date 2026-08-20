@@ -68,6 +68,14 @@ export function MemoryCard({ onError }: MemoryCardProps) {
             <li key={item.id} className="flex-start gap-sm">
               <span>
                 <strong className="pref-sublabel">{t(`memory.kind.${item.kind}`)}</strong>
+                {item.needsReview && (
+                  <>
+                    {' '}
+                    <span className="pref-sublabel" title={t('memory.staleHint')}>
+                      · {t('memory.stale')}
+                    </span>
+                  </>
+                )}
                 <br />
                 {item.text}
               </span>

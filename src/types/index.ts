@@ -257,6 +257,8 @@ export interface UserMemory {
   createdAt: string;
   lastUsedAt: string;
   useCount: number;
+  /** Old and never used. Shown as doubted; the user decides, not an automated pass. */
+  needsReview: boolean;
 }
 
 // ===== Generic API wrapper =====

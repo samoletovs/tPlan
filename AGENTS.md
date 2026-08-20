@@ -82,7 +82,13 @@ Call sites:
 |------|-------|------|
 | write | `functions/logs.ts` → `rememberWorkout` | user notes, and unanimous per-exercise difficulty verdicts |
 | read | `functions/workouts.ts` → `recallForPrompt` | injected into the coaching prompt, fenced |
-| control | `functions/memory.ts`, `components/MemoryCard.tsx` | list and delete |
+| consolidate | `memory/index.ts` → `consolidate`, called at the end of `rememberWorkout` | prunes provably-dead records |
+| control | `functions/memory.ts`, `components/MemoryCard.tsx` | list, doubt-flag and delete |
+
+Consolidation ("dreaming") has **no schedule of its own and must not get one** — the lab
+runs on ~0.6 spare Actions runs/month. It rides the write that just happened, where the
+record list is already loaded, so it costs no extra query. The invariant that makes this
+sufficient: the store only grows on write, so pruning on write bounds it.
 
 Rules that are not negotiable:
 
@@ -97,6 +103,10 @@ Rules that are not negotiable:
 - **Do not parse the user's note for keywords.** tPlan is EN/RU/LV/ES; keyword matching
   would work in English and silently fail for everyone else. Store what the user wrote
   and let the model interpret it.
+- **Consolidation never deletes what it merely doubts.** Old, never-recalled memories are
+  returned in `review` and shown to the user flagged "still true?". Only the user can
+  settle it, and an automated pass that silently drops someone's memory is worse than one
+  that keeps too much.
 
 ## Key Rules
 - Training materials in `/materials/` are READ-ONLY reference — never modify

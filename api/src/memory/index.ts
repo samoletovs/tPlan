@@ -18,7 +18,9 @@ import {
   decideWrite,
   formatForPrompt,
   markUsed,
+  planConsolidation,
   recall,
+  type ConsolidationPlan,
   type MemoryRecord,
   type MemoryStore,
 } from './memory-core.js';
@@ -68,6 +70,8 @@ export function setMemoryStore(store: MemoryStore | null): void {
 export interface WriteOutcome {
   written: number;
   skipped: string[];
+  /** The user's records *after* this write. Lets the caller consolidate for free. */
+  records: MemoryRecord[];
 }
 
 /**
@@ -83,10 +87,11 @@ export async function rememberCandidates(
   now: Date,
   store: MemoryStore = getMemoryStore(),
 ): Promise<WriteOutcome> {
-  const outcome: WriteOutcome = { written: 0, skipped: [] };
+  const outcome: WriteOutcome = { written: 0, skipped: [], records: [] };
   if (candidates.length === 0) return outcome;
 
   const existing = await store.list(userId);
+  outcome.records = existing;
 
   for (const candidate of candidates) {
     const decision = decideWrite(candidate, existing);
@@ -112,7 +117,39 @@ export async function rememberCandidates(
     outcome.written += 1;
   }
 
+  outcome.records = existing;
   return outcome;
+}
+
+/**
+ * Prune what the store no longer needs, using records the caller already has.
+ *
+ * This is the "dreaming" pass, and it deliberately has no schedule of its own. The lab
+ * has ~0.6 runs/month of Actions headroom, so a nightly job was never available; instead
+ * it rides the write that just happened, where the record list is already in hand. That
+ * costs no extra query, and the invariant holds: the store only grows on write, so
+ * pruning on write is enough to bound it.
+ *
+ * Only provably-dead records are removed. Anything merely suspicious is returned for the
+ * user to judge - an automated pass that silently deletes someone's memory is far worse
+ * than one that keeps too much.
+ */
+export async function consolidate(
+  userId: string,
+  records: MemoryRecord[],
+  now: Date = new Date(),
+  store: MemoryStore = getMemoryStore(),
+): Promise<ConsolidationPlan> {
+  const plan = planConsolidation(records, { now });
+  for (const record of plan.drop) {
+    try {
+      await store.delete(userId, record.id);
+    } catch (error) {
+      // A failed prune is a wasted row, not a broken user. Try the rest.
+      console.warn('Memory prune skipped:', { userId, id: record.id, error });
+    }
+  }
+  return plan;
 }
 
 /** Derive and store whatever a freshly logged workout revealed. Never throws. */
@@ -123,10 +160,18 @@ export async function rememberWorkout(
 ): Promise<WriteOutcome> {
   try {
     await ensureTable();
-    return await rememberCandidates(userId, observeWorkout(toWorkoutLog(log), 'logs'), now);
+    const outcome = await rememberCandidates(userId, observeWorkout(toWorkoutLog(log), 'logs'), now);
+    // Dream on the way out: the records are already loaded, so pruning is nearly free.
+    // Failure here must not undo a successful write, hence its own catch.
+    if (outcome.records.length > 0) {
+      await consolidate(userId, outcome.records, now).catch((error) =>
+        console.warn('Memory consolidation skipped:', { userId, error }),
+      );
+    }
+    return outcome;
   } catch (error) {
     console.warn('Memory write skipped:', { userId, error });
-    return { written: 0, skipped: ['store unavailable'] };
+    return { written: 0, skipped: ['store unavailable'], records: [] };
   }
 }
 

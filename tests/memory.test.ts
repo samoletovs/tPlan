@@ -287,10 +287,29 @@ describe('planConsolidation', () => {
     expect(plan.keep.map((r) => r.id)).toContain('orig');
   });
 
+  it('keeps a long-held memory corrected today, measuring grace from the correction', () => {
+    // The bug this guards: measuring the window from the *superseded* record's creation
+    // gave a year-old belief no audit window at all, so the evidence of a correction
+    // vanished on the very next pass.
+    const original = record({ id: 'orig', createdAt: daysAgo(400), useCount: 3 });
+    const newer = record({ id: 'new', createdAt: daysAgo(1), supersedes: 'orig' });
+    const plan = planConsolidation([original, newer], { now: NOW });
+    expect(plan.drop.map((r) => r.id)).not.toContain('orig');
+    expect(plan.keep.map((r) => r.id)).toContain('orig');
+  });
+
   it('drops a superseded record once the audit window has passed', () => {
     const original = record({ id: 'orig', createdAt: daysAgo(200) });
-    const newer = record({ id: 'new', supersedes: 'orig' });
+    const newer = record({ id: 'new', createdAt: daysAgo(90), supersedes: 'orig' });
     const plan = planConsolidation([original, newer], { now: NOW });
+    expect(plan.drop.map((r) => r.id)).toContain('orig');
+  });
+
+  it('uses the earliest correction when a record was superseded more than once', () => {
+    const original = record({ id: 'orig', createdAt: daysAgo(300) });
+    const first = record({ id: 'a', createdAt: daysAgo(90), supersedes: 'orig' });
+    const second = record({ id: 'b', createdAt: daysAgo(1), supersedes: 'orig' });
+    const plan = planConsolidation([original, first, second], { now: NOW });
     expect(plan.drop.map((r) => r.id)).toContain('orig');
   });
 

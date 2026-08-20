@@ -279,6 +279,8 @@
     "empty": "Nada todavía. Las notas que añadas a un entrenamiento aparecerán aquí.",
     "forget": "Olvidar",
     "forgetConfirm": "¿Olvidar esto permanentemente?",
+    "stale": "¿sigue siendo cierto?",
+    "staleHint": "Recordado hace mucho tiempo y nunca usado desde entonces. Consérvalo o elimínalo.",
     "kind": {
       "fact": "Hecho",
       "preference": "Preferencia",

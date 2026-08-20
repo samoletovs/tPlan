@@ -279,6 +279,8 @@
     "empty": "Pagaidām nekas. Piezīmes, ko pievienosiet treniņam, parādīsies šeit.",
     "forget": "Aizmirst",
     "forgetConfirm": "Aizmirst to neatgriezeniski?",
+    "stale": "vai vēl aktuāli?",
+    "staleHint": "Iegaumēts sen un kopš tā laika nekad nav izmantots. Paturi vai izdzēs.",
     "kind": {
       "fact": "Fakts",
       "preference": "Izvēle",
