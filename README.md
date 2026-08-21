@@ -1,40 +1,53 @@
-# tPlan Web App — NauroLabs Research Lab
+# tPlan
 
-> Phase 2 of the tPlan research project: a multi-user web application exploring AI-driven workout generation from training methodology books.
+tPlan is an AI-assisted training coach that turns structured training
+methodologies into progressive workout plans.
 
-## Research Context
+## Research question
 
-This app is part of a lab experiment investigating whether AI agents can read training books and produce correct, progressive workout programs. See the [main README](../README.md) for the full research framing.
+tPlan tests the NauroLabs question **"Where's the AI-human boundary?"** It asks
+whether AI can act as a coach by interpreting a methodology, adapting a plan
+from workout feedback, and explaining progress without taking control away
+from the athlete.
 
-## What This App Does
+## What it does
 
-- **Generates workouts** from parsed training methodology (Convict Conditioning, Dumbbell Gymnastics)
-- **Tracks progress** with difficulty ratings, reps, notes, and body weight
-- **Auto-progresses** exercises based on the source book's transition rules
-- **Supports 4 languages** (English, Russian, Latvian, Spanish)
-- **Social features** — challenges and leaderboards for motivation research
+- Generates and schedules workouts from structured program definitions.
+- Tracks reps, difficulty, notes, body weight, and progression.
+- Applies deterministic progression rules and remembers selected user facts.
+- Supports English, Russian, Latvian, and Spanish.
+- Includes social challenges and leaderboards as motivation experiments.
 
-## Tech Stack
+## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React + TypeScript + Vite |
-| Backend | Azure Functions (Node.js) |
-| Database | Azure Cosmos DB |
-| Hosting | Azure Static Web Apps |
-| Auth | Google OAuth via SWA |
+- React 19, TypeScript, Vite, i18next, and Chart.js
+- Azure Functions (Node.js 20)
+- Azure Table Storage
+- Azure Static Web Apps authentication and hosting
 
-## Development
+## Run locally
 
-```bash
+```powershell
 npm install
+Copy-Item .env.example .env
+Copy-Item api\local.settings.json.example api\local.settings.json
 npm run dev
 ```
 
-## Deployment
+Before submitting a change:
 
-Deployed to Azure SWA: [tplan.naurolabs.com](https://tplan.naurolabs.com)
+```powershell
+npm run lint
+npm test
+npm run build
+```
 
-## Next: User-Uploaded Programs (Phase 3)
+## Status
 
-The planned next step is allowing users to upload their own training books (PDF/markdown) and have the system extract a structured program — exercises, levels, progression rules — that others can follow.
+**Active research prototype.** Workout generation, logging, deterministic
+progression, multilingual UI, memory controls, and social experiments are
+implemented. User-uploaded program extraction remains planned.
+
+## License
+
+MIT

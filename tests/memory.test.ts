@@ -68,7 +68,7 @@ describe('similarity', () => {
 
 describe('looksLikeSecret', () => {
   it.each([
-    ['github token', 'my token is ghp_abcdefghijklmnopqrstuvwxyz0123'],
+    ['github token', 'my token is ghp_EXAMPLENOTAREAL0000_NOT_A_REAL_TOKEN'],
     ['openai key', 'key sk-abcdefghijklmnopqrstuvwx'],
     ['bearer', 'Authorization: Bearer abcdefghijklmnopqrstuvwxyz012345'],
     ['connection string', 'AccountName=x;AccountKey=abcdefghijklmnopqrstuvwxyz012345=='],
@@ -126,7 +126,7 @@ describe('decideWrite', () => {
 
   it('refuses a credential even at high confidence', () => {
     const decision = decideWrite(
-      { text: 'token ghp_abcdefghijklmnopqrstuvwxyz0123', kind: 'fact', confidence: 1 },
+      { text: 'token ghp_EXAMPLENOTAREAL0000_NOT_A_REAL_TOKEN', kind: 'fact', confidence: 1 },
       [],
     );
     expect(decision.action).toBe('skip');
