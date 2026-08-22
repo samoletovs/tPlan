@@ -126,7 +126,7 @@ app.http('createProgram', {
   },
 });
 
-// DELETE /api/programs/:id — delete a program (user's own or global)
+// DELETE /api/programs/:id — delete one of the caller's OWN programs
 app.http('deleteProgram', {
   methods: ['DELETE'],
   route: 'programs/{id}',
@@ -139,15 +139,23 @@ app.http('deleteProgram', {
 
     const table = getTable('tplanPrograms');
 
-    // Try user's own programs first, then global
+    // Only the caller's own partition. This used to fall through to `global` when
+    // the id was not found under the user, so ANY authenticated user could delete
+    // a shared program simply by naming its id - content nobody had given them
+    // authority over, and which every other user depends on.
+    //
+    // Global programs are seeded, not user-managed. Removing one is an
+    // administrative act and does not belong on a per-user endpoint; a caller who
+    // does not own the program now gets the same 404 as one naming an id that does
+    // not exist, so the endpoint also stops confirming which global programs are
+    // present.
     let deleted = false;
-    for (const pk of [userId, 'global']) {
-      try {
-        await table.getEntity(pk, id);
-        await table.deleteEntity(pk, id);
-        deleted = true;
-        break;
-      } catch { continue; }
+    try {
+      await table.getEntity(userId, id);
+      await table.deleteEntity(userId, id);
+      deleted = true;
+    } catch {
+      deleted = false;
     }
 
     if (!deleted) {
