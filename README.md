@@ -27,6 +27,10 @@ from the athlete.
 
 ## Run locally
 
+Use Node.js 22 (22.13.0 or later) for frontend development and CI, meeting
+ESLint's minimum version. Vitest 5 no longer supports Node.js 20; the hosted
+API runtime is configured separately.
+
 ```powershell
 npm install
 Copy-Item .env.example .env
