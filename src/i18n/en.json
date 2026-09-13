@@ -92,7 +92,9 @@
     "exercises": "exercises",
     "steps": "steps",
     "exerciseList": "Exercises",
-    "notePlaceholder": "Any adjustments? (e.g. skip legs, focus on arms, wrist hurts...)",
+    "notePlaceholder": "Coaching style or encouragement (optional)",
+    "noteHelp": "Notes affect coaching text only, not exercises, sets, reps, or scheduling. Requests to change the workout are declined. Edit your program or schedule instead.",
+    "coachingUnavailable": "Coaching tips are unavailable. Your program was generated without AI changes.",
     "repsCount": "{{n}} reps",
     "secondsCount": "{{n}}s"
   },
@@ -174,7 +176,9 @@
     "progressionRule": "+{{reps}} reps after {{threshold}} easy sessions",
     "uploadBook": "Upload Program",
     "delete": "Delete Program",
-    "confirmDelete": "Confirm Delete"
+    "confirmDelete": "Confirm Delete",
+    "unavailable": "Needs repair",
+    "repairRequired": "This program's schedule needs repair and cannot generate workouts. Upload a corrected copy or delete your copy. Existing schedule entries can still be removed."
   },
   "upload": {
     "title": "Upload Program",

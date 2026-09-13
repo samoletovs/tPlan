@@ -1,5 +1,14 @@
 import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId } from '../db.js';
+import { readProgramSchedule, ProgramScheduleError } from '../services/program-schedule.js';
+import { resolveLocale, t } from '../i18n.js';
+
+function invalidProgram(req: HttpRequest): HttpResponseInit {
+  return { status: 422, jsonBody: {
+    code: 'invalid_program',
+    error: t(resolveLocale(undefined, req.headers.get('accept-language')), 'error.invalidProgram'),
+  } };
+}
 
 // GET /api/programs — list all programs (global + user-uploaded)
 app.http('getPrograms', {
@@ -10,7 +19,7 @@ app.http('getPrograms', {
     if (!userId) return { status: 401, jsonBody: { error: 'Unauthorized' } };
 
     const table = getTable('tplanPrograms');
-    const programs: any[] = [];
+    const programs: Record<string, unknown>[] = [];
 
     // Get global programs (partitionKey = "global") and user's programs
     for await (const entity of table.listEntities({
@@ -18,18 +27,31 @@ app.http('getPrograms', {
         filter: `PartitionKey eq 'global' or PartitionKey eq '${userId}'`,
       },
     })) {
-      programs.push({
+      const identity = {
         id: entity.rowKey,
         owner: entity.partitionKey === 'global' ? 'global' : userId,
-        name: entity.name,
-        description: entity.description,
-        type: entity.type, // 'calisthenics' | 'weights' | 'cardio' | 'flexibility'
-        exercises: JSON.parse(entity.exercises as string || '[]'),
-        levels: JSON.parse(entity.levels as string || '[]'),
-        progressionRules: JSON.parse(entity.progressionRules as string || '{}'),
-        source: entity.source, // original file name
-        createdAt: entity.createdAt,
-      });
+        name: typeof entity.name === 'string' ? entity.name : entity.rowKey,
+        description: typeof entity.description === 'string' ? entity.description : '',
+        type: typeof entity.type === 'string' ? entity.type : 'custom',
+        source: typeof entity.source === 'string' ? entity.source : '',
+        createdAt: typeof entity.createdAt === 'string' ? entity.createdAt : '',
+      };
+      try {
+        const schedule = readProgramSchedule(entity);
+        const levels: unknown = JSON.parse(String(entity.levels ?? '[]'));
+        const progressionRules: unknown = JSON.parse(String(entity.progressionRules ?? '{}'));
+        if (!Array.isArray(levels) || !progressionRules || typeof progressionRules !== 'object' || Array.isArray(progressionRules)) {
+          throw new ProgramScheduleError();
+        }
+        programs.push({ ...identity, ...schedule, levels, progressionRules, availability: 'ready' });
+      } catch {
+        // Keep the identity available for repair/deletion without presenting damaged data as runnable.
+        programs.push({
+          ...identity, availability: 'repair_required',
+          exercises: [], levels: [], trainingDays: {}, defaultSchedule: {},
+          progressionRules: {},
+        });
+      }
     }
 
     return { jsonBody: programs };
@@ -58,14 +80,15 @@ app.http('getProgram', {
             name: entity.name,
             description: entity.description,
             type: entity.type,
-            exercises: JSON.parse(entity.exercises as string || '[]'),
+            ...readProgramSchedule(entity),
             levels: JSON.parse(entity.levels as string || '[]'),
             progressionRules: JSON.parse(entity.progressionRules as string || '{}'),
             source: entity.source,
             createdAt: entity.createdAt,
           },
         };
-      } catch {
+      } catch (error) {
+        if (error instanceof ProgramScheduleError) return invalidProgram(req);
         continue;
       }
     }

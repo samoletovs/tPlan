@@ -92,7 +92,9 @@
     "exercises": "ejercicios",
     "steps": "pasos",
     "exerciseList": "Ejercicios",
-    "notePlaceholder": "¿Algún ajuste? (p. ej., saltar piernas, enfocarse en brazos, duele la muñeca...)",
+    "notePlaceholder": "Estilo de coaching o ánimo (opcional)",
+    "noteHelp": "Las notas solo afectan al texto de los consejos, no a ejercicios, series, repeticiones ni horarios. Esos cambios se rechazan. Modifica el programa o el horario.",
+    "coachingUnavailable": "Los consejos no están disponibles. Tu programa se generó sin cambios de IA.",
     "repsCount": "{{n}} reps",
     "secondsCount": "{{n}} s"
   },
@@ -174,7 +176,9 @@
     "progressionRule": "+{{reps}} repeticiones después de {{threshold}} sesiones fáciles",
     "uploadBook": "Subir programa",
     "delete": "Eliminar programa",
-    "confirmDelete": "Confirmar eliminación"
+    "confirmDelete": "Confirmar eliminación",
+    "unavailable": "Requiere reparación",
+    "repairRequired": "Hay que corregir el horario de este programa; no puede generar entrenamientos. Sube una copia corregida o elimina tu copia. Aún puedes quitar sus entradas del horario."
   },
   "upload": {
     "title": "Subir programa",

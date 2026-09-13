@@ -64,6 +64,10 @@ const en: Dictionary = {
   'workout.restDay': 'Rest day — no workouts scheduled.',
   'error.userNotFound': 'User not found. Visit /app/profile first.',
   'error.noSchedule': 'No schedule configured. Set up your weekly plan first.',
+  'error.invalidProgram': 'This program has an incomplete or inconsistent exercise schedule. Review and save it again before generating a workout.',
+  'error.emptySession': 'No exercises match this session. Review your program and schedule; no workout was saved.',
+  'error.unsupportedAdjustment': 'Coaching notes cannot change exercises, sets, reps, or scheduling. Update your program or schedule instead; no workout was saved.',
+  'error.coachingUnavailable': 'Your note could not be evaluated, so no workout was saved. Retry later or remove the note to generate the unchanged program.',
 };
 
 const ru: Dictionary = {
@@ -110,6 +114,10 @@ const ru: Dictionary = {
   'workout.restDay': 'День отдыха — тренировок не запланировано.',
   'error.userNotFound': 'Профиль не найден. Сначала откройте /app/profile.',
   'error.noSchedule': 'Расписание не настроено. Сначала составьте недельный план.',
+  'error.invalidProgram': 'Расписание упражнений в программе неполное или противоречивое. Проверьте и сохраните программу заново.',
+  'error.emptySession': 'Для этой тренировки нет подходящих упражнений. Проверьте программу и расписание; тренировка не сохранена.',
+  'error.unsupportedAdjustment': 'Заметки для тренера не меняют упражнения, подходы, повторения или расписание. Измените программу или расписание; тренировка не сохранена.',
+  'error.coachingUnavailable': 'Не удалось обработать заметку, поэтому тренировка не сохранена. Повторите позже или уберите заметку, чтобы получить программу без изменений.',
 };
 
 const lv: Dictionary = {
@@ -156,6 +164,10 @@ const lv: Dictionary = {
   'workout.restDay': 'Atpūtas diena — treniņi nav ieplānoti.',
   'error.userNotFound': 'Lietotājs nav atrasts. Vispirms atveriet /app/profile.',
   'error.noSchedule': 'Grafiks nav izveidots. Vispirms izveidojiet nedēļas plānu.',
+  'error.invalidProgram': 'Programmas vingrinājumu grafiks ir nepilnīgs vai pretrunīgs. Pārskatiet un saglabājiet programmu vēlreiz.',
+  'error.emptySession': 'Šai nodarbībai nav atbilstošu vingrinājumu. Pārskatiet programmu un grafiku; treniņš netika saglabāts.',
+  'error.unsupportedAdjustment': 'Trenera piezīmes nemaina vingrinājumus, piegājienus, atkārtojumus vai grafiku. Mainiet programmu vai grafiku; treniņš netika saglabāts.',
+  'error.coachingUnavailable': 'Piezīmi neizdevās izvērtēt, tāpēc treniņš netika saglabāts. Mēģiniet vēlāk vai noņemiet piezīmi, lai ģenerētu programmu bez izmaiņām.',
 };
 
 const es: Dictionary = {
@@ -202,6 +214,10 @@ const es: Dictionary = {
   'workout.restDay': 'Día de descanso: no hay entrenamientos programados.',
   'error.userNotFound': 'Usuario no encontrado. Visita /app/profile primero.',
   'error.noSchedule': 'No hay horario configurado. Configura primero tu plan semanal.',
+  'error.invalidProgram': 'El horario de ejercicios está incompleto o es incoherente. Revisa y guarda el programa de nuevo.',
+  'error.emptySession': 'No hay ejercicios para esta sesión. Revisa el programa y el horario; no se guardó ningún entrenamiento.',
+  'error.unsupportedAdjustment': 'Las notas de coaching no cambian ejercicios, series, repeticiones ni horarios. Modifica el programa o el horario; no se guardó ningún entrenamiento.',
+  'error.coachingUnavailable': 'No se pudo evaluar tu nota, así que no se guardó el entrenamiento. Inténtalo más tarde o elimina la nota para generar el programa sin cambios.',
 };
 
 const DICTIONARIES: Record<Locale, Dictionary> = { en, ru, lv, es };

@@ -2,6 +2,8 @@ import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { getTable, getUserId } from '../db.js';
 import { extractProgram } from '../services/extraction.js';
 import { parsePdf } from '../services/pdf-parser.js';
+import { validateProgramSchedule } from '../services/program-schedule.js';
+import { resolveLocale, t } from '../i18n.js';
 
 // POST /api/programs/extract — upload book text (or base64 PDF), get extracted program structure
 app.http('extractProgram', {
@@ -69,20 +71,33 @@ app.http('createProgram', {
     const userId = getUserId(req.headers);
     if (!userId) return { status: 401, jsonBody: { error: 'Unauthorized' } };
 
-    let program: any;
+    let input: unknown;
     try {
-      program = await req.json();
+      input = await req.json();
     } catch {
       return { status: 400, jsonBody: { error: 'Invalid JSON body' } };
     }
 
-    if (!program.name || typeof program.name !== 'string') {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) {
+      return { status: 400, jsonBody: { error: 'Program must be an object' } };
+    }
+    const program = input as Record<string, unknown>;
+    if (typeof program.name !== 'string' || !program.name.trim()) {
       return { status: 400, jsonBody: { error: 'Program must have a name' } };
     }
     if (!program.exercises || !Array.isArray(program.exercises) || program.exercises.length === 0) {
       return { status: 400, jsonBody: { error: 'Program must have at least one exercise' } };
     }
 
+    let schedule;
+    try {
+      schedule = validateProgramSchedule(program);
+    } catch {
+      return { status: 400, jsonBody: {
+        code: 'invalid_program',
+        error: t(resolveLocale(undefined, req.headers.get('accept-language')), 'error.invalidProgram'),
+      } };
+    }
     const id = generateId(program.name);
     const now = new Date().toISOString();
 
@@ -94,7 +109,9 @@ app.http('createProgram', {
       description: program.description || '',
       type: program.type || 'custom',
       source: program.source || 'manual',
-      exercises: JSON.stringify(program.exercises),
+      exercises: JSON.stringify(schedule.exercises),
+      trainingDays: JSON.stringify(schedule.trainingDays),
+      defaultSchedule: JSON.stringify(schedule.defaultSchedule),
       levels: JSON.stringify(program.levels || []),
       progressionRules: JSON.stringify(program.progressionRules || {
         repsIncrement: 2,
@@ -113,7 +130,7 @@ app.http('createProgram', {
         description: program.description || '',
         type: program.type || 'custom',
         source: program.source || 'manual',
-        exercises: program.exercises,
+        ...schedule,
         levels: program.levels || [],
         progressionRules: program.progressionRules || {
           repsIncrement: 2,

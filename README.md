@@ -18,6 +18,31 @@ from the athlete.
 - Supports English, Russian, Latvian, and Spanish.
 - Includes social challenges and leaderboards as motivation experiments.
 
+## Coaching and program contracts
+
+Workout structure is deterministic. The optional note requests coaching style or
+encouragement, not exercise, set, repetition, or schedule changes. The model must
+return an explicit supported/unsupported decision; structural requests it identifies
+are rejected before saving. An unavailable or invalid decision with a note also
+prevents saving, so the note is not silently ignored. Remove the note to generate
+the unchanged program without coaching.
+
+Without a note, unavailable or invalid AI display fields are discarded and the
+workout remains usable with a localized status notice. Tips are bounded strings
+aligned to the complete step list; the model cannot modify the exercises.
+
+Reviewed program extractions preserve training-day mappings, default schedules, and
+exercise slots through save/read/generate. Inconsistent mappings and unintentionally
+empty training sessions are rejected. Legacy unrestricted programs and explicit
+rest days remain supported.
+
+An older damaged upload does not block the program catalog. It remains visible as
+**needs repair**, with its existing delete controls; healthy programs remain usable.
+Damaged programs cannot be newly scheduled or run, but existing schedule entries
+can be removed. Re-upload a corrected copy rather than guessing a lost mapping.
+When named training days exist, every exercise must belong to at least one day;
+empty exercise slots are only supported by genuinely unrestricted legacy programs.
+
 ## Stack
 
 - React 19, TypeScript, Vite, i18next, and Chart.js
@@ -43,14 +68,22 @@ Before submitting a change:
 ```powershell
 npm run lint
 npm test
+npm run build --prefix api
 npm run build
 ```
+
+`tests/workout-contracts.test.ts` runs actual extraction, program, and workout
+handlers with synthetic responses and in-memory storage, plus React renderer
+checks. It does not contact the model or storage services.
+Catalog recovery checks also render the actual Programs and Schedule pages with
+injected state, exercise their delete/toggle callbacks, and use mocked APIs. These
+are local source-level regressions, not browser or hosted Functions integration tests.
 
 ## Status
 
 **Active research prototype.** Workout generation, logging, deterministic
 progression, multilingual UI, memory controls, and social experiments are
-implemented. User-uploaded program extraction remains planned.
+implemented, including user-uploaded program extraction and review.
 
 ## License
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getSchedule, getPrograms, updateSchedule } from '../services/api';
 import type { ScheduleData, Program, DayOfWeek } from '../types';
+import { ProgramRepairNotice } from '../components/ProgramRepairNotice';
 
 const DAYS: DayOfWeek[] = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
@@ -33,6 +34,7 @@ export default function Schedule() {
     const previousSchedule = schedule;
     const current = schedule.weeklySchedule[day];
     const exists = current.some(s => s.programId === programId && s.slot === slot);
+    if (!exists && programs.find(program => program.id === programId)?.availability === 'repair_required') return;
     const updated = exists
       ? current.filter(s => !(s.programId === programId && s.slot === slot))
       : [...current, { programId, slot }];
@@ -131,6 +133,7 @@ export default function Schedule() {
                       return (
                         <span key={i} className={`slot-badge ${slotCls}`}>
                           {program?.name ? abbreviate(program.name) : s.programId} {t(`schedule.slot.${s.slot}`, { defaultValue: s.slot })}
+                          {program?.availability === 'repair_required' && ` — ${t('programs.unavailable')}`}
                         </span>
                       );
                     })
@@ -145,6 +148,7 @@ export default function Schedule() {
                       <div className="text-sm font-medium mb-xs">
                         {program.name}
                       </div>
+                      <ProgramRepairNotice program={program} />
                       <div className="flex gap-xs flex-wrap">
                         {TIME_SLOTS.map(slot => {
                           const isActive = slots.some(s => s.programId === program.id && s.slot === slot);
@@ -156,6 +160,7 @@ export default function Schedule() {
                               onClick={() => handleToggleSlot(day, program.id, slot)}
                               aria-label={`${program.name} ${slot}`}
                               aria-pressed={isActive}
+                              disabled={program.availability === 'repair_required' && !isActive}
                             >
                               {t(`schedule.slot.${slot}`)}
                             </button>

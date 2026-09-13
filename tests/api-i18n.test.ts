@@ -23,6 +23,10 @@ const GENERATED_KEYS = [
   'workout.restDay',
   'error.userNotFound',
   'error.noSchedule',
+  'error.invalidProgram',
+  'error.emptySession',
+  'error.unsupportedAdjustment',
+  'error.coachingUnavailable',
 ];
 
 describe('api i18n — locales', () => {

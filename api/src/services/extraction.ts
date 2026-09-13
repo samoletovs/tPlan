@@ -6,6 +6,8 @@
  * This ensures books with 40-50+ exercises are fully extracted.
  */
 
+import { validateProgramSchedule } from './program-schedule.js';
+
 // ── Pass 1: lightweight inventory ──────────────────────────────────────────
 const INVENTORY_PROMPT = `You are an expert fitness coach and training program analyst.
 Given the text of a training methodology book, produce a COMPLETE inventory of every exercise.
@@ -279,7 +281,7 @@ export async function extractProgram(
   warnings.push(...validationWarnings);
   const confidence = calculateConfidence(program, validationWarnings);
 
-  return { program, confidence, warnings };
+  return { program: { ...program, ...validateProgramSchedule(program) }, confidence, warnings };
 }
 
 function validateExtraction(program: any): string[] {
