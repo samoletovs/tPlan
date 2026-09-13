@@ -36,6 +36,13 @@ exercise slots through save/read/generate. Inconsistent mappings and unintention
 empty training sessions are rejected. Legacy unrestricted programs and explicit
 rest days remain supported.
 
+An older damaged upload does not block the program catalog. It remains visible as
+**needs repair**, with its existing delete controls; healthy programs remain usable.
+Damaged programs cannot be newly scheduled or run, but existing schedule entries
+can be removed. Re-upload a corrected copy rather than guessing a lost mapping.
+When named training days exist, every exercise must belong to at least one day;
+empty exercise slots are only supported by genuinely unrestricted legacy programs.
+
 ## Stack
 
 - React 19, TypeScript, Vite, i18next, and Chart.js
@@ -68,6 +75,9 @@ npm run build
 `tests/workout-contracts.test.ts` runs actual extraction, program, and workout
 handlers with synthetic responses and in-memory storage, plus React renderer
 checks. It does not contact the model or storage services.
+Catalog recovery checks also render the actual Programs and Schedule pages with
+injected state, exercise their delete/toggle callbacks, and use mocked APIs. These
+are local source-level regressions, not browser or hosted Functions integration tests.
 
 ## Status
 

@@ -19,7 +19,7 @@ app.http('getPrograms', {
     if (!userId) return { status: 401, jsonBody: { error: 'Unauthorized' } };
 
     const table = getTable('tplanPrograms');
-    const programs: any[] = [];
+    const programs: Record<string, unknown>[] = [];
 
     // Get global programs (partitionKey = "global") and user's programs
     for await (const entity of table.listEntities({
@@ -27,20 +27,31 @@ app.http('getPrograms', {
         filter: `PartitionKey eq 'global' or PartitionKey eq '${userId}'`,
       },
     })) {
-      let schedule;
-      try { schedule = readProgramSchedule(entity); } catch { return invalidProgram(req); }
-      programs.push({
+      const identity = {
         id: entity.rowKey,
         owner: entity.partitionKey === 'global' ? 'global' : userId,
-        name: entity.name,
-        description: entity.description,
-        type: entity.type, // 'calisthenics' | 'weights' | 'cardio' | 'flexibility'
-        ...schedule,
-        levels: JSON.parse(entity.levels as string || '[]'),
-        progressionRules: JSON.parse(entity.progressionRules as string || '{}'),
-        source: entity.source, // original file name
-        createdAt: entity.createdAt,
-      });
+        name: typeof entity.name === 'string' ? entity.name : entity.rowKey,
+        description: typeof entity.description === 'string' ? entity.description : '',
+        type: typeof entity.type === 'string' ? entity.type : 'custom',
+        source: typeof entity.source === 'string' ? entity.source : '',
+        createdAt: typeof entity.createdAt === 'string' ? entity.createdAt : '',
+      };
+      try {
+        const schedule = readProgramSchedule(entity);
+        const levels: unknown = JSON.parse(String(entity.levels ?? '[]'));
+        const progressionRules: unknown = JSON.parse(String(entity.progressionRules ?? '{}'));
+        if (!Array.isArray(levels) || !progressionRules || typeof progressionRules !== 'object' || Array.isArray(progressionRules)) {
+          throw new ProgramScheduleError();
+        }
+        programs.push({ ...identity, ...schedule, levels, progressionRules, availability: 'ready' });
+      } catch {
+        // Keep the identity available for repair/deletion without presenting damaged data as runnable.
+        programs.push({
+          ...identity, availability: 'repair_required',
+          exercises: [], levels: [], trainingDays: {}, defaultSchedule: {},
+          progressionRules: {},
+        });
+      }
     }
 
     return { jsonBody: programs };

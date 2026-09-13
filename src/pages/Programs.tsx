@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { getPrograms, deleteProgram, getSchedule, updateSchedule } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { Program, ScheduleData, LevelProgress } from '../types';
+import { ProgramRepairNotice } from '../components/ProgramRepairNotice';
 
 export default function Programs() {
   const { t } = useTranslation();
@@ -116,7 +117,8 @@ export default function Programs() {
       {error && <div className="error-toast mb-sm">{error}</div>}
 
       {programs.map(program => {
-        const isExpanded = expandedId === program.id;
+        const needsRepair = program.availability === 'repair_required';
+        const isExpanded = needsRepair || expandedId === program.id;
         const typeLabel = program.type === 'calisthenics'
           ? t('programs.typeCalisthenics')
           : program.type === 'weights'
@@ -139,9 +141,9 @@ export default function Programs() {
                   <span className="tag">{typeLabel}</span>
                 </div>
                 <p className="text-sm text-secondary">{program.description}</p>
-                <div className="text-xs text-tertiary mt-sm">
+                {!needsRepair && <div className="text-xs text-tertiary mt-sm">
                   {t('programs.exerciseCount', { count: program.exercises.length })}
-                </div>
+                </div>}
               </div>
               <svg
                 viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
@@ -152,6 +154,7 @@ export default function Programs() {
               </svg>
             </div>
 
+            <ProgramRepairNotice program={program} />
             {isExpanded && (
               <div className="collapse-content">
                 {program.exercises.map(exercise => {
@@ -191,11 +194,11 @@ export default function Programs() {
                     </div>
                   );
                 })}
-                <div className="text-center pt-sm">
+                {!needsRepair && <div className="text-center pt-sm">
                   <span className="text-xs text-tertiary">
                     {t('programs.progressionRule', { reps: program.progressionRules.repsIncrement, threshold: program.progressionRules.consecutiveEasyThreshold })}
                   </span>
-                </div>
+                </div>}
                 {/* Delete button */}
                 <div className="flex gap-sm mt-md">
                   <button

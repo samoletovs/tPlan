@@ -176,7 +176,9 @@
     "progressionRule": "+{{reps}} repeticiones después de {{threshold}} sesiones fáciles",
     "uploadBook": "Subir programa",
     "delete": "Eliminar programa",
-    "confirmDelete": "Confirmar eliminación"
+    "confirmDelete": "Confirmar eliminación",
+    "unavailable": "Requiere reparación",
+    "repairRequired": "Hay que corregir el horario de este programa; no puede generar entrenamientos. Sube una copia corregida o elimina tu copia. Aún puedes quitar sus entradas del horario."
   },
   "upload": {
     "title": "Subir programa",

@@ -68,6 +68,7 @@ export function validateProgramSchedule(input: unknown): ProgramSchedule {
     if (Object.keys(trainingDays).length) {
       const expected = Object.keys(trainingDays).filter(id => trainingDays[id].exercises.includes(exercise.id));
       if (
+        expected.length === 0 ||
         exercise.slots.length !== expected.length ||
         exercise.slots.some(id => !expected.includes(id))
       ) throw new ProgramScheduleError();

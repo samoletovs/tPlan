@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import ts from 'typescript';
-import { describe, expect, it } from 'vitest';
-import { createElement } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+import { createElement, isValidElement, type ReactElement, type ReactNode } from 'react';
+import * as jsxRuntime from 'react/jsx-runtime';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ExerciseStepCard from '../src/components/workout/ExerciseStepCard';
 import TimedExerciseStep from '../src/components/workout/TimedExerciseStep';
@@ -73,6 +74,10 @@ function harness({ configured = false, content = JSON.stringify({
             if (!row || row.partitionKey !== partition) throw new Error('Not found');
             return row;
           },
+          deleteEntity: async (partition: string, id: string) => {
+            if (saved.get(id)?.partitionKey !== partition) throw new Error('Not found');
+            saved.delete(id);
+          },
           async *listEntities() { yield* saved.values(); },
         };
         if (name === 'tplanUsers') return { getEntity: async () => ({
@@ -136,6 +141,159 @@ function harness({ configured = false, content = JSON.stringify({
     })),
   };
 }
+
+function renderPage({
+  file, initialState, translate, api,
+}: {
+  file: string; initialState: unknown[];
+  translate: (key: string, options?: Record<string, unknown>) => string;
+  api: Record<string, unknown>;
+}) {
+  const state = [...initialState];
+  let cursor = 0;
+  const cache = new Map<string, Row>();
+  const dependencies: Record<string, unknown> = {
+    react: {
+      useState: (initial: unknown) => {
+        const index = cursor++;
+        if (index >= state.length) state[index] = initial;
+        return [state[index], (next: unknown) => {
+          state[index] = typeof next === 'function' ? next(state[index]) : next;
+        }];
+      },
+      useEffect() {},
+    },
+    'react/jsx-runtime': jsxRuntime,
+    'react-i18next': { useTranslation: () => ({ t: translate }) },
+    'react-router-dom': { Link: ({ to, children, ...props }: Row) => createElement('a', { href: to, ...props }, children as ReactNode) },
+    '../services/api': api,
+    '../context/AuthContext': { useAuth: () => ({ user: null }) },
+  };
+  function load(filename: string): Row {
+    if (cache.has(filename)) return cache.get(filename)!;
+    const exports: Row = {};
+    cache.set(filename, exports);
+    const source = ts.transpileModule(readFileSync(filename, 'utf8'), {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
+    }).outputText;
+    vm.runInNewContext(source, {
+      exports,
+      require(name: string) {
+        if (Object.hasOwn(dependencies, name)) return dependencies[name];
+        if (name.startsWith('.')) return load(path.resolve(path.dirname(filename), `${name}.tsx`));
+        throw new Error(`Unmocked UI dependency: ${name}`);
+      },
+    }, { filename });
+    return exports;
+  }
+  const page = load(path.resolve('src', 'pages', `${file}.tsx`)).default;
+  if (typeof page !== 'function') throw new Error('Missing page component');
+  return {
+    tree: (): ReactNode => { cursor = 0; return page(); },
+    html(): string { return renderToStaticMarkup(this.tree()); },
+  };
+}
+
+function buttons(node: ReactNode): ReactElement<Row>[] {
+  if (Array.isArray(node)) return node.flatMap(buttons);
+  if (!isValidElement<Row>(node)) return [];
+  const found = node.type === 'button' ? [node] : [];
+  return [...found, ...buttons(node.props.children as ReactNode)];
+}
+
+function click(button: ReactElement<Row>) {
+  if (typeof button.props.onClick !== 'function') throw new Error('Missing click handler');
+  return button.props.onClick({ stopPropagation() {} });
+}
+
+describe('damaged program catalog UI', () => {
+  it.each(['en', 'ru', 'lv', 'es'])('keeps healthy choices, repair status, and the existing delete flow in %s', async language => {
+    const h = harness();
+    await h.save();
+    const healthy = [...h.saved.values()][0];
+    const bad: Row = { ...healthy, rowKey: 'old-upload', name: 'Old upload' };
+    delete bad.trainingDays;
+    delete bad.defaultSchedule;
+    h.saved.set('old-upload', bad);
+    const response = await h.routes.getPrograms(request(null));
+    expect(response.status ?? 200).toBe(200);
+    const programs = response.jsonBody as Row[];
+    const i18n = createInstance();
+    await i18n.init({ lng: language, resources: {
+      en: { translation: en }, ru: { translation: ru }, lv: { translation: lv }, es: { translation: es },
+    } });
+    const schedule = {
+      weeklySchedule: { mon: [{ programId: 'old-upload', slot: 'morning' }], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [] },
+      programs: [],
+    };
+    const deleteProgram = vi.fn(async (id: string) => {
+      const deleted = await h.routes.deleteProgram(request(null, { id }));
+      expect(deleted.status).toBe(200);
+    });
+    const updateSchedule = vi.fn(async () => {});
+    const api = { deleteProgram, getSchedule: async () => schedule, updateSchedule };
+    const catalog = renderPage({
+      file: 'Programs', initialState: [programs, schedule, false, null, null, null, null],
+      translate: (key, options) => i18n.t(key, options), api,
+    });
+    expect(catalog.html()).toContain('Synthetic program');
+    expect(catalog.html()).toContain('Old upload');
+    expect(catalog.html()).toContain('role="status"');
+    expect(catalog.html()).not.toContain('programs.repairRequired');
+    const deletion = buttons(catalog.tree()).find(button => button.props.children === i18n.t('programs.delete'));
+    expect(deletion).toBeDefined();
+    click(deletion!);
+    expect(deleteProgram).not.toHaveBeenCalled();
+    const confirmation = buttons(catalog.tree()).find(button => button.props.children === i18n.t('programs.confirmDelete'));
+    expect(confirmation).toBeDefined();
+    click(confirmation!);
+    await vi.waitFor(() => expect(updateSchedule).toHaveBeenCalledOnce());
+    expect(deleteProgram).toHaveBeenCalledExactlyOnceWith('old-upload');
+    expect(h.saved.has(String(healthy.rowKey))).toBe(true);
+    expect(catalog.html()).not.toContain('Old upload');
+    expect(catalog.html()).toContain('Synthetic program');
+  });
+
+  it('keeps healthy schedule toggles enabled, blocks damaged additions, and allows removing an existing damaged slot', async () => {
+    const h = harness();
+    await h.save();
+    const healthy = [...h.saved.values()][0];
+    const bad: Row = { ...healthy, rowKey: 'old-upload', name: 'Old upload' };
+    delete bad.trainingDays;
+    delete bad.defaultSchedule;
+    h.saved.set('old-upload', bad);
+    const response = await h.routes.getPrograms(request(null));
+    expect(response.status ?? 200).toBe(200);
+    const schedule = { weeklySchedule: {
+      mon: [{ programId: 'old-upload', slot: 'morning' }], tue: [], wed: [], thu: [], fri: [], sat: [], sun: [],
+    }, programs: [] };
+    const updateSchedule = vi.fn(async () => {});
+    const page = renderPage({
+      file: 'Schedule', initialState: [schedule, response.jsonBody, false, 'mon', false, null],
+      translate: key => key, api: { updateSchedule },
+    });
+    expect(page.html()).toContain('Synthetic program');
+    expect(page.html()).toContain('Old upload');
+    expect(page.html()).toContain('role="status"');
+    const all = buttons(page.tree());
+    const healthyChoice = all.find(button => button.props['aria-label'] === 'Synthetic program morning')!;
+    const invalidChoice = all.find(button => button.props['aria-label'] === 'Old upload evening')!;
+    const existing = all.find(button => button.props['aria-label'] === 'Old upload morning')!;
+    expect(healthyChoice.props.disabled).toBe(false);
+    expect(invalidChoice.props.disabled).toBe(true);
+    expect(existing.props.disabled).toBe(false);
+    await click(invalidChoice);
+    expect(updateSchedule).not.toHaveBeenCalled();
+    await click(existing);
+    expect(updateSchedule).toHaveBeenCalledWith(expect.objectContaining({
+      weeklySchedule: expect.objectContaining({ mon: [] }),
+    }));
+    await click(buttons(page.tree()).find(button => button.props['aria-label'] === 'Synthetic program morning')!);
+    expect(updateSchedule).toHaveBeenLastCalledWith(expect.objectContaining({
+      weeklySchedule: expect.objectContaining({ mon: [{ programId: healthy.rowKey, slot: 'morning' }] }),
+    }));
+  });
+});
 
 describe('saved extraction contract', () => {
   it('preserves schedule and intended exercise through save, both reads, and generation', async () => {
@@ -230,7 +388,60 @@ describe('saved extraction contract', () => {
     const row = [...h.saved.values()][0];
     row.defaultSchedule = JSON.stringify({ mon: 'missing' });
     expect((await h.routes.getProgram(request(null, { id: String(row.rowKey) }))).status).toBe(422);
-    expect((await h.routes.getPrograms(request(null))).status).toBe(422);
+    const catalog = await h.routes.getPrograms(request(null));
+    expect(catalog.status ?? 200).toBe(200);
+    expect((catalog.jsonBody as Row[])[0].availability).toBe('repair_required');
+  });
+
+  it.each([false, true])('isolates an old-format upload from a healthy catalog entry (bad first=%s)', async badFirst => {
+    const h = harness();
+    await h.save();
+    const healthy = [...h.saved.values()][0];
+    const bad: Row = { ...healthy, rowKey: 'old-upload', name: 'Old upload' };
+    delete bad.trainingDays;
+    delete bad.defaultSchedule;
+    h.saved.clear();
+    const rows = badFirst ? [bad, healthy] : [healthy, bad];
+    rows.forEach(row => h.saved.set(String(row.rowKey), row));
+    const catalog = await h.routes.getPrograms(request(null));
+    expect(catalog.status ?? 200).toBe(200);
+    const programs = catalog.jsonBody as Row[];
+    expect(programs).toHaveLength(2);
+    expect(programs.find(item => item.id === healthy.rowKey)?.trainingDays).toEqual(program().trainingDays);
+    expect(programs.find(item => item.id === 'old-upload')).toMatchObject({
+      id: 'old-upload', name: 'Old upload', availability: 'repair_required', exercises: [],
+    });
+    expect(h.saved.get('old-upload')).toEqual(bad);
+    expect((await h.routes.getProgram(request(null, { id: String(healthy.rowKey) }))).status ?? 200).toBe(200);
+    expect((await h.routes.getProgram(request(null, { id: 'old-upload' }))).status).toBe(422);
+    const deleted = await h.routes.deleteProgram(request(null, { id: 'old-upload' }));
+    expect(deleted.status).toBe(200);
+    expect(h.saved.has('old-upload')).toBe(false);
+    expect(h.saved.has(String(healthy.rowKey))).toBe(true);
+    expect((await h.generate()).status).toBe(201);
+  });
+
+  it('rejects an unassigned exercise in a named-day program before saving', async () => {
+    const h = harness();
+    const draft = program();
+    draft.exercises.unshift({ ...draft.exercises[0], id: 'unassigned', slots: [] });
+    expect((await h.save(draft)).status).toBe(400);
+    expect(h.saved.size).toBe(0);
+  });
+
+  it('does not let an unassigned stored exercise displace the mapped exercise at a one-exercise cap', async () => {
+    const h = harness();
+    await h.save();
+    const row = [...h.saved.values()][0];
+    const exercises = program().exercises;
+    row.exercises = JSON.stringify([{ ...exercises[0], id: 'unassigned', slots: [] }, ...exercises]);
+    row.progressionRules = JSON.stringify({ maxExercisesPerSession: 1 });
+    expect((await h.generate()).status).toBe(422);
+    expect(h.workouts).toHaveLength(0);
+    row.exercises = JSON.stringify(exercises);
+    const good = await h.generate();
+    expect(good.status).toBe(201);
+    expect((object(good.jsonBody).steps as Row[]).filter(step => step.type === 'exercise').map(step => step.exerciseId)).toEqual(['demo']);
   });
 
   it('rejects a stored broken mapping instead of publishing an empty session', async () => {

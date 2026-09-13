@@ -160,6 +160,7 @@ export interface DashboardStats {
 // ===== Programs =====
 export interface Program {
   id: string;
+  availability?: 'ready' | 'repair_required';
   name: string;
   description: string;
   type: 'calisthenics' | 'weights' | 'custom';

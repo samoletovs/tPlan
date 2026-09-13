@@ -176,7 +176,9 @@
     "progressionRule": "+{{reps}} atkārtojumi pēc {{threshold}} vieglām sesijām",
     "uploadBook": "Augšupielādēt programmu",
     "delete": "Dzēst programmu",
-    "confirmDelete": "Apstiprināt dzēšanu"
+    "confirmDelete": "Apstiprināt dzēšanu",
+    "unavailable": "Jālabo",
+    "repairRequired": "Programmas grafiks ir jālabo; treniņus no tās nevar ģenerēt. Augšupielādējiet labotu kopiju vai dzēsiet savu. Esošos grafika ierakstus joprojām var noņemt."
   },
   "upload": {
     "title": "Augšupielādēt programmu",
