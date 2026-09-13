@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { ExerciseStep, ExerciseResult, PreviousResult, Difficulty } from '../../types';
 import { timerAlert } from '../../utils/audio';
+import { CoachingTip } from './CoachingText';
 
 function fmtTime(s: number) {
   return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
@@ -77,9 +78,7 @@ export default function TimedExerciseStep({ step, previousResults, onComplete }:
 
       <div className="exercise-technique">{step.technique}</div>
 
-      {step.aiTip && (
-        <div className="exercise-prev">{step.aiTip}</div>
-      )}
+      <CoachingTip value={step.aiTip} />
 
       <div className="big-number">
         <div className={`timer-display ${cls}`}>

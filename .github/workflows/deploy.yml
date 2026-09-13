@@ -45,7 +45,7 @@ jobs:
         run: npm run lint
 
       - name: Type check
-        run: npx tsc -b
+        run: npx tsc -b && npx tsc --noEmit --project api/tsconfig.json
 
       # 161 unit tests existed in this repo and no workflow ran any of them, so
       # "we have tests" bought nothing. Added here rather than as a new workflow:

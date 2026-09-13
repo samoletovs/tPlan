@@ -10,6 +10,7 @@ import RestTimer from '../components/workout/RestTimer';
 import WorkoutSummary from '../components/workout/WorkoutSummary';
 import ProgressBar from '../components/workout/ProgressBar';
 import { useAuth } from '../context/AuthContext';
+import { WorkoutCoaching } from '../components/workout/CoachingText';
 
 const DAY_MAP: DayOfWeek[] = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
@@ -205,14 +206,18 @@ export default function WorkoutPage() {
 
         {/* User note for workout generation */}
         <div className="mb-md">
+          <label htmlFor="coaching-note" className="label">{t('workout.notePlaceholder')}</label>
           <input
+            id="coaching-note"
             type="text"
             className="input text-sm"
-            placeholder={t('workout.notePlaceholder')}
             value={userNote}
             onChange={e => setUserNote(e.target.value)}
             aria-label={t('workout.notePlaceholder')}
+            aria-describedby="coaching-note-help"
+            maxLength={500}
           />
+          <p id="coaching-note-help" className="text-sm text-secondary">{t('workout.noteHelp')}</p>
         </div>
 
         {/* Morning/Day session */}
@@ -309,14 +314,7 @@ export default function WorkoutPage() {
           <div className="streak">{'🔥'} {workout.streak} {t('common.days')}</div>
         )}
 
-        {/* AI motivation / workout explanation */}
-        {workout.motivation && (
-          <div className="card mb-md">
-            <div className="text-sm text-secondary" style={{ lineHeight: 1.5 }}>
-              {workout.motivation}
-            </div>
-          </div>
-        )}
+        <WorkoutCoaching workout={workout} />
 
         {/* Exercise preview */}
         <div className="card mb-md">

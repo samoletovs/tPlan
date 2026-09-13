@@ -92,7 +92,9 @@
     "exercises": "ejercicios",
     "steps": "pasos",
     "exerciseList": "Ejercicios",
-    "notePlaceholder": "¿Algún ajuste? (p. ej., saltar piernas, enfocarse en brazos, duele la muñeca...)",
+    "notePlaceholder": "Estilo de coaching o ánimo (opcional)",
+    "noteHelp": "Las notas solo afectan al texto de los consejos, no a ejercicios, series, repeticiones ni horarios. Esos cambios se rechazan. Modifica el programa o el horario.",
+    "coachingUnavailable": "Los consejos no están disponibles. Tu programa se generó sin cambios de IA.",
     "repsCount": "{{n}} reps",
     "secondsCount": "{{n}} s"
   },

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { extractProgramFromText, createProgram } from '../services/api';
+import { prepareReviewedProgram } from '../utils/programReview';
 import type { Program, ProgramExercise, ProgramLevel, ProgressionRules, ExtractionResult } from '../types';
 
 type Step = 'upload' | 'extracting' | 'review' | 'saving';
@@ -112,11 +113,10 @@ export default function UploadProgram() {
     setError(null);
     try {
       const toSave = {
-        ...program,
+        ...prepareReviewedProgram({ program, exercises: editExercises }),
         name: editName,
         description: editDesc,
         type: editType,
-        exercises: editExercises,
       };
       await createProgram(toSave);
       navigate('/app/programs');

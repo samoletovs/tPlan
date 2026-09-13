@@ -63,6 +63,7 @@ export interface Workout {
   createdAt: string;
   completed: boolean;
   motivation?: string;
+  coachingStatus?: 'added' | 'unavailable' | 'invalid_response';
   /** Language the workout content was generated in. */
   locale?: Locale;
 }
@@ -166,6 +167,8 @@ export interface Program {
   exercises: ProgramExercise[];
   levels: ProgramLevel[];
   progressionRules: ProgressionRules;
+  trainingDays?: Record<string, { exercises: string[]; label: string }>;
+  defaultSchedule?: Partial<Record<DayOfWeek, string | null>>;
   createdAt: string;
 }
 
