@@ -1,5 +1,9 @@
 # tPlan — AI Training Coach
 
+Feedback triage uses `gpt-6-luna` on the existing personal-agents Azure account,
+with reasoning disabled and a 300-token output ceiling. The training engine and
+application coaching models are not changed by this retirement migration.
+
 ## Overview
 Research project exploring how AI agents can interpret training methodology books and generate personalized, progressive workout programs. Phase 1 (offline HTML workouts) is complete; Phase 2 is a React web app with Azure backend.
 
