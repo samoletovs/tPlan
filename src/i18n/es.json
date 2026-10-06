@@ -92,6 +92,14 @@
     "exercises": "ejercicios",
     "steps": "pasos",
     "exerciseList": "Ejercicios",
+    "recommendations": "Recomendaciones personalizadas",
+    "recommendationPreference": "Se tiene en cuenta tu intensidad preferida: {{difficulty}}. Las sugerencias reflejan tus resultados recientes.",
+    "recommendationNoHistory": "Completa algunos entrenamientos para recibir sugerencias basadas en tu historial.",
+    "recommendation": {
+      "increase": "Dos sesiones fáciles seguidas: prueba un objetivo de {{reps}} la próxima vez.",
+      "maintain": "Mantén tu objetivo actual de {{reps}}.",
+      "hard": "Últimamente te resultó difícil: mantén un objetivo de {{reps}} y céntrate en la técnica."
+    },
     "notePlaceholder": "Estilo de coaching o ánimo (opcional)",
     "noteHelp": "Las notas solo afectan al texto de los consejos, no a ejercicios, series, repeticiones ni horarios. Esos cambios se rechazan. Modifica el programa o el horario.",
     "coachingUnavailable": "Los consejos no están disponibles. Tu programa se generó sin cambios de IA.",
