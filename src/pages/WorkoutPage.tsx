@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
-import { getWorkouts, getSchedule, getPrograms, generateWorkout, deleteWorkout, saveLog } from '../services/api';
-import type { Workout, WorkoutStep, ExerciseResult, ScheduleSlot, Program, DayOfWeek, GenerateWorkoutResponse } from '../types';
+import { getWorkouts, getSchedule, getPrograms, generateWorkout, deleteWorkout, saveLog, getLogs, getWorkoutRecommendations } from '../services/api';
+import type { Workout, WorkoutStep, ExerciseResult, ScheduleSlot, Program, DayOfWeek, GenerateWorkoutResponse, WorkoutRecommendations } from '../types';
 import ChecklistStep from '../components/workout/ChecklistStep';
 import ExerciseStepCard from '../components/workout/ExerciseStepCard';
 import TimedExerciseStep from '../components/workout/TimedExerciseStep';
@@ -37,6 +37,7 @@ export default function WorkoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [todaySlots, setTodaySlots] = useState<ScheduleSlot[]>([]);
   const [programs, setPrograms] = useState<Program[]>([]);
+  const [recommendations, setRecommendations] = useState<WorkoutRecommendations | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const elapsedRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [userNote, setUserNote] = useState('');
@@ -58,6 +59,12 @@ export default function WorkoutPage() {
   async function loadWorkout() {
     setLoading(true);
     setError(null);
+    setRecommendations(null);
+    void getLogs(50)
+      .then(logs => setRecommendations(getWorkoutRecommendations(logs, {
+        defaultDifficulty: user?.preferences?.defaultDifficulty ?? 'normal',
+      })))
+      .catch(() => setRecommendations(null));
     try {
       if (id) {
         const workouts = await getWorkouts();
@@ -204,6 +211,8 @@ export default function WorkoutPage() {
       <div>
         <h2 className="mb-md">{t('workout.title')}</h2>
 
+        <RecommendationCard recommendations={recommendations} />
+
         {/* User note for workout generation */}
         <div className="mb-md">
           <label htmlFor="coaching-note" className="label">{t('workout.notePlaceholder')}</label>
@@ -310,6 +319,7 @@ export default function WorkoutPage() {
         <p className="text-sm text-secondary mb-md">
           {workout.day} &middot; {exerciseCount} {t('workout.exercises')} &middot; {workout.steps.length} {t('workout.steps')}
         </p>
+        <RecommendationCard recommendations={recommendations} />
         {workout.streak >= 2 && (
           <div className="streak">{'🔥'} {workout.streak} {t('common.days')}</div>
         )}
@@ -376,6 +386,32 @@ export default function WorkoutPage() {
         />
       )}
     </div>
+  );
+}
+
+function RecommendationCard({ recommendations }: { recommendations: WorkoutRecommendations | null }) {
+  const { t } = useTranslation();
+  if (!recommendations) return null;
+
+  return (
+    <section className="card mb-md" aria-label={t('workout.recommendations')}>
+      <label className="label">{'💡'} {t('workout.recommendations')}</label>
+      <p className="text-sm text-secondary">{t('workout.recommendationPreference', {
+        difficulty: t(`workout.${recommendations.defaultDifficulty}`),
+      })}</p>
+      {recommendations.items.length === 0 ? (
+        <p className="text-sm text-secondary">{t('workout.recommendationNoHistory')}</p>
+      ) : (
+        <ul className="text-sm">
+          {recommendations.items.map(item => (
+            <li key={item.name}>
+              <strong>{item.name}</strong>{' — '}
+              {t(`workout.recommendation.${item.action}`, { reps: item.reps })}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
