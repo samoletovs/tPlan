@@ -143,6 +143,17 @@ export interface ExerciseResult {
   notes: string;
 }
 
+export interface WorkoutRecommendation {
+  name: string;
+  action: 'increase' | 'maintain' | 'hard';
+  reps: number;
+}
+
+export interface WorkoutRecommendations {
+  defaultDifficulty: Difficulty;
+  items: WorkoutRecommendation[];
+}
+
 // ===== Dashboard =====
 export interface DashboardStats {
   totalWorkouts: number;
