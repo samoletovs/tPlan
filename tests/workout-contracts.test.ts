@@ -60,6 +60,9 @@ function harness({ configured = false, content = JSON.stringify({
   const calls: Row[] = [];
   const signals: AbortSignal[] = [];
   let scheduled = true;
+  let scheduleSlots: Row[] | null = null;
+  let logs: Row[] = [];
+  let currentLevels: Row = {};
   const dependencies: Record<string, unknown> = {
     '@azure/functions': { app: { http: (name: string, options: { handler: Handler }) => {
       routes[name] = options.handler;
@@ -81,13 +84,17 @@ function harness({ configured = false, content = JSON.stringify({
           async *listEntities() { yield* saved.values(); },
         };
         if (name === 'tplanUsers') return { getEntity: async () => ({
-          locale, currentLevels: '{}', preferences: '{}',
+          locale, currentLevels: JSON.stringify(currentLevels), preferences: '{}',
         }) };
         if (name === 'tplanSchedules') return { getEntity: async () => ({
-          weeklySchedule: JSON.stringify({ mon: scheduled ? [{ programId: [...saved.keys()][0], slot: 'morning' }] : [] }),
+          weeklySchedule: JSON.stringify({
+            mon: scheduleSlots ?? (scheduled ? [{ programId: [...saved.keys()][0], slot: 'morning' }] : []),
+          }),
           programs: '[]',
         }) };
-        if (name === 'tplanLogs') return { async *listEntities() {} };
+        if (name === 'tplanLogs') return {
+          async *listEntities() { for (const log of logs) yield { data: JSON.stringify(log) }; },
+        };
         if (name === 'tplanWorkouts') return { upsertEntity: async (row: Row) => { workouts.push(row); } };
         throw new Error(`Unmocked table: ${name}`);
       },
@@ -135,9 +142,12 @@ function harness({ configured = false, content = JSON.stringify({
   return {
     routes, saved, workouts, calls, signals,
     rest: () => { scheduled = false; },
+    setSchedule: (slots: Row[]) => { scheduleSlots = slots; },
+    setLogs: (entries: Row[]) => { logs = entries; },
+    setLevels: (levels: Row) => { currentLevels = levels; },
     save: (value: unknown = program()) => routes.createProgram(request(value)),
-    generate: (userNote = '') => routes.generateWorkout(request({
-      date: '2026-09-07', session: 'morning', userNote,
+    generate: (userNote = '', session: 'morning' | 'evening' = 'morning') => routes.generateWorkout(request({
+      date: '2026-09-07', session, userNote,
     })),
   };
 }
@@ -461,6 +471,110 @@ describe('saved extraction contract', () => {
     expect(response.status).toBe(200);
     expect(object(response.jsonBody).restDay).toBe(true);
     expect(h.workouts).toHaveLength(0);
+  });
+});
+
+describe('workout generation edge cases', () => {
+  it('builds repetition and timed exercises from the correct current levels', async () => {
+    const h = harness();
+    await h.save();
+    const row = [...h.saved.values()][0];
+    const exercises = JSON.parse(String(row.exercises)) as Row[];
+    exercises.push({
+      id: 'hold', name: 'Static Hold', type: 'timed', technique: 'Hold steady.',
+      defaultReps: 30, startLevel: 1, slots: ['day-a'],
+    });
+    row.exercises = JSON.stringify(exercises);
+    row.trainingDays = JSON.stringify({
+      'day-a': { label: 'A', exercises: ['demo', 'hold'] },
+    });
+    h.setLevels({
+      [String(row.rowKey)]: {
+        demo: { level: 3, sets: 2, reps: 7 },
+        hold: { durationSec: 45 },
+      },
+    });
+
+    const response = await h.generate();
+    expect(response.status).toBe(201);
+    const steps = (object(response.jsonBody).steps as Row[]).filter(step => step.type === 'exercise');
+    expect(steps.filter(step => step.exerciseId === 'demo')).toMatchObject([
+      { meta: 'Level 3 · Set 1 of 2', planned: 7 },
+      { meta: 'Level 3 · Set 2 of 2', planned: 7 },
+    ]);
+    expect(steps.find(step => step.exerciseId === 'hold')).toMatchObject({
+      tempo: 'hold', timer: 45, planned: 45,
+    });
+  });
+
+  it('resolves a training-day type from its scheduled position when no weekday default exists', async () => {
+    const h = harness();
+    await h.save();
+    const row = [...h.saved.values()][0];
+    row.defaultSchedule = JSON.stringify({});
+    h.setSchedule([{ programId: String(row.rowKey), slot: 'morning' }]);
+
+    const response = await h.generate();
+    expect(response.status).toBe(201);
+    expect(object(response.jsonBody).title).toBe('Synthetic program (A)');
+    expect((object(response.jsonBody).steps as Row[]).some(step => step.exerciseId === 'demo')).toBe(true);
+  });
+
+  it('rotates toward exercises that have not been done as recently when capped', async () => {
+    const h = harness();
+    await h.save();
+    const row = [...h.saved.values()][0];
+    const exercises = JSON.parse(String(row.exercises)) as Row[];
+    exercises.push(
+      { ...exercises[0], id: 'older', name: 'Older', slots: ['day-a'] },
+      { ...exercises[0], id: 'recent', name: 'Recent', slots: ['day-a'] },
+    );
+    row.exercises = JSON.stringify(exercises);
+    row.trainingDays = JSON.stringify({
+      'day-a': { label: 'A', exercises: ['demo', 'older', 'recent'] },
+    });
+    row.progressionRules = JSON.stringify({ maxExercisesPerSession: 1 });
+    h.setLogs([
+      { date: '2026-09-03', exercises: [{ exerciseId: 'older' }] },
+      { date: '2026-09-05', exercises: [{ exerciseId: 'recent' }] },
+      { date: '2026-09-04', exercises: [{ exerciseId: 'demo' }] },
+    ]);
+
+    const response = await h.generate();
+    expect(response.status).toBe(201);
+    expect((object(response.jsonBody).steps as Row[])
+      .filter(step => step.type === 'exercise').map(step => step.exerciseId)).toEqual(['older']);
+  });
+
+  it('fills the minimum exercise count from recently trained exercises when necessary', async () => {
+    const h = harness();
+    await h.save();
+    h.setLogs([{ date: '2026-09-06', exercises: [{ exerciseId: 'demo' }] }]);
+
+    const response = await h.generate();
+    expect(response.status).toBe(201);
+    expect((object(response.jsonBody).steps as Row[])
+      .filter(step => step.type === 'exercise').map(step => step.exerciseId)).toEqual(['demo']);
+  });
+
+  it('selects evening slots and includes recent history in the workout', async () => {
+    const h = harness();
+    await h.save();
+    const row = [...h.saved.values()][0];
+    h.setSchedule([
+      { programId: String(row.rowKey), slot: 'morning' },
+      { programId: String(row.rowKey), slot: 'evening' },
+    ]);
+    h.setLogs([
+      { date: '2026-09-06', programId: row.rowKey, exercises: [{ exerciseId: 'demo', actual: 4 }] },
+      { date: '2026-09-05', programId: row.rowKey, exercises: [] },
+    ]);
+
+    const response = await h.generate('', 'evening');
+    expect(response.status).toBe(201);
+    expect(object(response.jsonBody)).toMatchObject({
+      type: 'evening', streak: 3, previousResults: [{ exerciseId: 'demo', actual: 4 }],
+    });
   });
 });
 
