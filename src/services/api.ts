@@ -1,8 +1,9 @@
 import type {
   User, Workout, WorkoutLog, DashboardStats,
   ApiResponse, Program, ScheduleData, ExtractionResult, GenerateWorkoutResponse,
-  UserMemory,
+  UserMemory, WorkoutRecommendations, UserPreferences,
 } from '../types';
+import { getPlankProgression } from '../utils/progression';
 
 const BASE = '/api';
 
@@ -61,6 +62,52 @@ export const getLogs = (limit = 50, offset = 0) =>
   request<WorkoutLog[]>(`/logs?limit=${limit}&offset=${offset}`);
 export const saveLog = (log: SaveWorkoutLogPayload) =>
   request<WorkoutLog>('/logs', { method: 'POST', body: JSON.stringify(log) });
+
+export function getWorkoutRecommendations(
+  logs: WorkoutLog[],
+  preferences: Pick<UserPreferences, 'defaultDifficulty'>,
+): WorkoutRecommendations {
+  const byExercise = new Map<string, { name: string; sessions: WorkoutLog['exercises'][] }>();
+  const recentLogs = [...logs].sort((a, b) => b.date.localeCompare(a.date));
+
+  for (const log of recentLogs) {
+    const exercises = new Map<string, WorkoutLog['exercises']>();
+    for (const result of log.exercises) {
+      const key = result.name.trim().toLowerCase();
+      if (!key) continue;
+      const results = exercises.get(key) ?? [];
+      results.push(result);
+      exercises.set(key, results);
+    }
+
+    for (const [key, results] of exercises) {
+      const exercise = byExercise.get(key) ?? { name: results[0].name, sessions: [] };
+      if (exercise.sessions.length < 2) exercise.sessions.push(results);
+      byExercise.set(key, exercise);
+    }
+  }
+
+  const items = [...byExercise.values()].slice(0, 5).map(({ name, sessions }) => {
+    const latestSession = sessions[0];
+    const planned = Math.max(...latestSession.map(result => result.planned));
+    const twoEasySessions = sessions.length >= 2
+      && sessions.slice(0, 2).every(session => session.every(result => result.difficulty === 'easy'));
+    const latestWasHard = latestSession.some(result => result.difficulty === 'hard');
+    const nextTarget = twoEasySessions
+      ? /plank|планк/i.test(name)
+        ? getPlankProgression(planned, 'easy', 1).durationSec
+        : planned + 2
+      : planned;
+
+    return {
+      name,
+      action: nextTarget > planned ? 'increase' as const : latestWasHard ? 'hard' as const : 'maintain' as const,
+      reps: nextTarget,
+    };
+  });
+
+  return { defaultDifficulty: preferences.defaultDifficulty, items };
+}
 
 // ===== Dashboard =====
 export const getDashboard = () => request<DashboardStats>('/dashboard');

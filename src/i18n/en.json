@@ -92,6 +92,14 @@
     "exercises": "exercises",
     "steps": "steps",
     "exerciseList": "Exercises",
+    "recommendations": "Personalized recommendations",
+    "recommendationPreference": "Using your preferred {{difficulty}} intensity. Suggestions reflect your recent results.",
+    "recommendationNoHistory": "Complete workouts to see suggestions tailored to your training history.",
+    "recommendation": {
+      "increase": "Two easy sessions in a row — try a target of {{reps}} next time.",
+      "maintain": "Keep your current target of {{reps}}.",
+      "hard": "That felt hard recently — keep a target of {{reps}} and focus on good form."
+    },
     "notePlaceholder": "Coaching style or encouragement (optional)",
     "noteHelp": "Notes affect coaching text only, not exercises, sets, reps, or scheduling. Requests to change the workout are declined. Edit your program or schedule instead.",
     "coachingUnavailable": "Coaching tips are unavailable. Your program was generated without AI changes.",

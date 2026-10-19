@@ -92,6 +92,14 @@
     "exercises": "vingrinājumi",
     "steps": "soļi",
     "exerciseList": "Vingrinājumi",
+    "recommendations": "Personalizēti ieteikumi",
+    "recommendationPreference": "Ņemta vērā tava izvēlētā grūtība: {{difficulty}}. Ieteikumi balstīti nesenajos rezultātos.",
+    "recommendationNoHistory": "Pabeidz dažus treniņus, lai saņemtu ieteikumus, kas balstīti tavā treniņu vēsturē.",
+    "recommendation": {
+      "increase": "Divi viegli treniņi pēc kārtas — nākamreiz izmēģini mērķi {{reps}}.",
+      "maintain": "Saglabā pašreizējo mērķi: {{reps}}.",
+      "hard": "Nesen bija grūti — saglabā mērķi {{reps}} un koncentrējies uz tehniku."
+    },
     "notePlaceholder": "Padomu stils vai uzmundrinājums (neobligāti)",
     "noteHelp": "Piezīmes ietekmē tikai padomu tekstu, nevis vingrinājumus, piegājienus, atkārtojumus vai grafiku. Šādu izmaiņu pieprasījumi tiek noraidīti. Mainiet programmu vai grafiku.",
     "coachingUnavailable": "Trenera padomi nav pieejami. Programma izveidota bez MI izmaiņām.",
