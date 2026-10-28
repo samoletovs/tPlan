@@ -82,12 +82,23 @@ app.http('generateWorkout', {
     const dayKey = DAY_KEYS[dayIdx];
     const acceptLanguage = req.headers.get('accept-language');
 
-    // 1. Get user profile + levels
+    // 1. Get user profile + levels and schedule concurrently; neither read depends on the other.
     const userTable = getTable('tplanUsers');
+    const schedTable = getTable('tplanSchedules');
+    const [userResult, scheduleResult] = await Promise.allSettled([
+      userTable.getEntity(userId, 'profile'),
+      schedTable.getEntity(userId, 'current'),
+    ]);
+
+    if (userResult.status === 'rejected') {
+      const fallbackLocale = resolveLocale(undefined, acceptLanguage);
+      return { status: 404, jsonBody: { error: t(fallbackLocale, 'error.userNotFound') } };
+    }
+
     let user: any;
     let locale: Locale;
     try {
-      const entity = await userTable.getEntity(userId, 'profile');
+      const entity = userResult.value;
       user = {
         locale: entity.locale as string || undefined,
         currentLevels: JSON.parse(entity.currentLevels as string || '{}'),
@@ -100,10 +111,13 @@ app.http('generateWorkout', {
     }
 
     // 2. Get schedule for this day
-    const schedTable = getTable('tplanSchedules');
+    if (scheduleResult.status === 'rejected') {
+      return { status: 400, jsonBody: { error: t(locale, 'error.noSchedule') } };
+    }
+
     let schedule: any;
     try {
-      const entity = await schedTable.getEntity(userId, 'current');
+      const entity = scheduleResult.value;
       schedule = {
         weeklySchedule: JSON.parse(entity.weeklySchedule as string || '{}'),
         programs: JSON.parse(entity.programs as string || '[]'),
