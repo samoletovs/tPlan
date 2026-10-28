@@ -6,7 +6,7 @@ vi.stubGlobal('fetch', mockFetch);
 
 // Import after mock setup
 import {
-  getUser, updateUser, getPrograms, getSchedule,
+  ApiError, getUser, updateUser, getPrograms, getSchedule,
   getWorkouts, generateWorkout, getLogs, saveLog,
   getDashboard, submitFeedback, deleteWorkout,
 } from '../src/services/api';
@@ -52,7 +52,28 @@ describe('api — request helper', () => {
 
   it('throws on non-ok response', async () => {
     mockFetch.mockReturnValue(mockError(401, 'Unauthorized'));
-    await expect(getUser()).rejects.toThrow('Unauthorized');
+    const error = await getUser().catch(error => error);
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      name: 'ApiError',
+      kind: 'unauthorized',
+      status: 401,
+      message: 'Unauthorized',
+    });
+  });
+
+  it.each([
+    [403, 'forbidden'],
+    [404, 'not-found'],
+    [500, 'server'],
+    [400, 'http'],
+  ] as const)('classifies HTTP %i errors', async (status, kind) => {
+    mockFetch.mockReturnValue(mockError(status, 'Request failed'));
+    await expect(getUser()).rejects.toMatchObject({
+      kind,
+      status,
+      message: 'Request failed',
+    });
   });
 
   it('throws generic error when response has no error field', async () => {
@@ -69,6 +90,44 @@ describe('api — request helper', () => {
       json: () => Promise.reject(new Error('invalid json')),
     }));
     await expect(getUser()).rejects.toThrow('API error 500');
+  });
+
+  it('normalizes network failures without swallowing the rejection', async () => {
+    mockFetch.mockRejectedValue(new TypeError('Failed to fetch'));
+    await expect(getUser()).rejects.toMatchObject({
+      name: 'ApiError',
+      kind: 'network',
+      status: null,
+      message: 'Failed to fetch',
+    });
+  });
+
+  it('reports invalid JSON from successful responses', async () => {
+    mockFetch.mockReturnValue(Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.reject(new SyntaxError('invalid json')),
+    }));
+    await expect(getUser()).rejects.toMatchObject({
+      name: 'ApiError',
+      kind: 'invalid-response',
+      status: 200,
+      message: 'Invalid JSON response',
+    });
+  });
+
+  it('classifies response body read failures as network errors', async () => {
+    mockFetch.mockReturnValue(Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.reject(new TypeError('Failed to read response body')),
+    }));
+    await expect(getUser()).rejects.toMatchObject({
+      name: 'ApiError',
+      kind: 'network',
+      status: 200,
+      message: 'Failed to read response body',
+    });
   });
 });
 
