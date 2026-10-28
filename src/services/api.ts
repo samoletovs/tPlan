@@ -63,8 +63,15 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   if (res.status === 204) return undefined as T;
   try {
     return await res.json();
-  } catch {
-    throw new ApiError('Invalid JSON response', 'invalid-response', res.status);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new ApiError('Invalid JSON response', 'invalid-response', res.status);
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : 'Network request failed',
+      'network',
+      res.status,
+    );
   }
 }
 

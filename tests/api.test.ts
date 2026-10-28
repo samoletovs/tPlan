@@ -106,13 +106,27 @@ describe('api — request helper', () => {
     mockFetch.mockReturnValue(Promise.resolve({
       ok: true,
       status: 200,
-      json: () => Promise.reject(new Error('invalid json')),
+      json: () => Promise.reject(new SyntaxError('invalid json')),
     }));
     await expect(getUser()).rejects.toMatchObject({
       name: 'ApiError',
       kind: 'invalid-response',
       status: 200,
       message: 'Invalid JSON response',
+    });
+  });
+
+  it('classifies response body read failures as network errors', async () => {
+    mockFetch.mockReturnValue(Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.reject(new TypeError('Failed to read response body')),
+    }));
+    await expect(getUser()).rejects.toMatchObject({
+      name: 'ApiError',
+      kind: 'network',
+      status: 200,
+      message: 'Failed to read response body',
     });
   });
 });
