@@ -19,13 +19,18 @@ export type ApiErrorKind =
   | 'invalid-response';
 
 export class ApiError extends Error {
+  readonly kind: ApiErrorKind;
+  readonly status: number | null;
+
   constructor(
     message: string,
-    readonly kind: ApiErrorKind,
-    readonly status: number | null = null,
+    kind: ApiErrorKind,
+    status: number | null = null,
   ) {
     super(message);
     this.name = 'ApiError';
+    this.kind = kind;
+    this.status = status;
   }
 }
 
