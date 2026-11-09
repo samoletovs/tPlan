@@ -50,7 +50,7 @@ function program() {
   };
 }
 
-function harness({ configured = false, content = JSON.stringify({
+function harness({ configured = false, trackConcurrentReads = false, content = JSON.stringify({
   motivation: 'Ready when you are.', tips: ['', 'Move steadily.', ''],
   unsupportedAdjustment: false,
 }), finishReason = 'stop', locale = 'en', responses = [] as string[], providerError = false } = {}) {
@@ -63,6 +63,14 @@ function harness({ configured = false, content = JSON.stringify({
   let scheduleSlots: Row[] | null = null;
   let logs: Row[] = [];
   let currentLevels: Row = {};
+  let activeProfileReads = 0;
+  let maxProfileReads = 0;
+  async function profileRead<T>(read: () => T): Promise<T> {
+    activeProfileReads++;
+    maxProfileReads = Math.max(maxProfileReads, activeProfileReads);
+    if (trackConcurrentReads) await new Promise(resolve => setTimeout(resolve, 5));
+    try { return read(); } finally { activeProfileReads--; }
+  }
   const dependencies: Record<string, unknown> = {
     '@azure/functions': { app: { http: (name: string, options: { handler: Handler }) => {
       routes[name] = options.handler;
@@ -83,15 +91,15 @@ function harness({ configured = false, content = JSON.stringify({
           },
           async *listEntities() { yield* saved.values(); },
         };
-        if (name === 'tplanUsers') return { getEntity: async () => ({
+        if (name === 'tplanUsers') return { getEntity: () => profileRead(() => ({
           locale, currentLevels: JSON.stringify(currentLevels), preferences: '{}',
-        }) };
-        if (name === 'tplanSchedules') return { getEntity: async () => ({
+        })) };
+        if (name === 'tplanSchedules') return { getEntity: () => profileRead(() => ({
           weeklySchedule: JSON.stringify({
             mon: scheduleSlots ?? (scheduled ? [{ programId: [...saved.keys()][0], slot: 'morning' }] : []),
           }),
           programs: '[]',
-        }) };
+        })) };
         if (name === 'tplanLogs') return {
           async *listEntities() { for (const log of logs) yield { data: JSON.stringify(log) }; },
         };
@@ -142,6 +150,7 @@ function harness({ configured = false, content = JSON.stringify({
   return {
     routes, saved, workouts, calls, signals,
     rest: () => { scheduled = false; },
+    maxProfileReadConcurrency: () => maxProfileReads,
     setSchedule: (slots: Row[]) => { scheduleSlots = slots; },
     setLogs: (entries: Row[]) => { logs = entries; },
     setLevels: (levels: Row) => { currentLevels = levels; },
@@ -475,6 +484,16 @@ describe('saved extraction contract', () => {
 });
 
 describe('workout generation edge cases', () => {
+  it('loads the user profile and schedule concurrently', async () => {
+    const h = harness({ trackConcurrentReads: true });
+    await h.save();
+
+    const response = await h.generate();
+
+    expect(response.status).toBe(201);
+    expect(h.maxProfileReadConcurrency()).toBe(2);
+  });
+
   it('builds repetition and timed exercises from the correct current levels', async () => {
     const h = harness();
     await h.save();
