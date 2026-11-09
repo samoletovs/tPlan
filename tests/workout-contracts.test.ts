@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import ts from 'typescript';
@@ -53,11 +53,13 @@ function program() {
 function harness({ configured = false, trackConcurrentReads = false, content = JSON.stringify({
   motivation: 'Ready when you are.', tips: ['', 'Move steadily.', ''],
   unsupportedAdjustment: false,
-}), finishReason = 'stop', locale = 'en', responses = [] as string[], providerError = false } = {}) {
+}), finishReason = 'stop', locale = 'en', responses = [] as string[], providerError = false,
+deployment = 'synthetic', extractionDeployment = '' } = {}) {
   const routes: Record<string, Handler> = {};
   const saved = new Map<string, Row>();
   const workouts: Row[] = [];
   const calls: Row[] = [];
+  const requests: { url: string; headers: Record<string, string> }[] = [];
   const signals: AbortSignal[] = [];
   let scheduled = true;
   let scheduleSlots: Row[] | null = null;
@@ -126,9 +128,11 @@ function harness({ configured = false, trackConcurrentReads = false, content = J
       exports, console: { error() {}, warn() {} }, AbortSignal,
       process: { env: configured ? {
         AZURE_OPENAI_ENDPOINT: 'https://example.invalid', AZURE_OPENAI_KEY: 'synthetic',
-        AZURE_OPENAI_DEPLOYMENT: 'synthetic',
+        AZURE_OPENAI_DEPLOYMENT: deployment,
+        ...(extractionDeployment ? { AZURE_OPENAI_EXTRACTION_DEPLOYMENT: extractionDeployment } : {}),
       } : {} },
-      fetch: async (_url: string, options: { body: string; signal: AbortSignal }) => {
+      fetch: async (url: string, options: { body: string; headers: Record<string, string>; signal: AbortSignal }) => {
+        requests.push({ url, headers: options.headers });
         calls.push(object(JSON.parse(options.body)));
         signals.push(options.signal);
         if (providerError) throw new Error('Synthetic provider outage');
@@ -148,7 +152,7 @@ function harness({ configured = false, trackConcurrentReads = false, content = J
     load(path.resolve('api', 'src', 'functions', `${name}.ts`));
   }
   return {
-    routes, saved, workouts, calls, signals,
+    routes, saved, workouts, calls, requests, signals,
     rest: () => { scheduled = false; },
     maxProfileReadConcurrency: () => maxProfileReads,
     setSchedule: (slots: Row[]) => { scheduleSlots = slots; },
@@ -699,6 +703,83 @@ describe('bounded optional coaching', () => {
     expect(h.calls).toHaveLength(0);
     expect(h.workouts).toHaveLength(0);
   });
+});
+
+describe('Azure OpenAI request shape', () => {
+  const luna = 'gpt-6-luna';
+  const oldKeys = ['max_completion_tokens', 'messages', 'response_format', 'temperature'];
+  const deployments = [luna, 'gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-6-luna-eu', 'synthetic'];
+  const extractionInput = { text: 'Synthetic methodology describing the Demo exercise.', fileName: 'synthetic.txt' };
+
+  function expectRequest(
+    sent: { url: string; headers: Record<string, string> }, body: Row,
+    { deployment, temperature, maxCompletionTokens }:
+      { deployment: string; temperature: number; maxCompletionTokens: number },
+  ) {
+    expect(sent.url).toBe(
+      `https://example.invalid/openai/deployments/${deployment}/chat/completions?api-version=2024-02-01`,
+    );
+    expect(sent.headers).toEqual({ 'Content-Type': 'application/json', 'api-key': 'synthetic' });
+    expect(Object.keys(body).sort()).toEqual(deployment === luna ? [...oldKeys, 'reasoning_effort'].sort() : oldKeys);
+    expect(body).toMatchObject({
+      temperature, max_completion_tokens: maxCompletionTokens, response_format: { type: 'json_object' },
+    });
+    expect(body.reasoning_effort).toBe(deployment === luna ? 'none' : undefined);
+  }
+
+  it.each(deployments)('sends the coaching request in a shape the %s deployment accepts', async deployment => {
+    const h = harness({ configured: true, deployment });
+    await h.save();
+    expect((await h.generate('Please use encouraging language.')).status).toBe(201);
+    expect(h.calls).toHaveLength(1);
+    expectRequest(h.requests[0], h.calls[0], { deployment, temperature: 0.7, maxCompletionTokens: 500 });
+  });
+
+  it.each(deployments)('sends both extraction passes in a shape the %s deployment accepts', async deployment => {
+    const h = harness({
+      configured: true, deployment, responses: [JSON.stringify(program()), JSON.stringify(program())],
+    });
+    expect((await h.routes.extractProgram(request(extractionInput))).status ?? 200).toBe(200);
+    expect(h.calls).toHaveLength(2);
+    expectRequest(h.requests[0], h.calls[0], { deployment, temperature: 0.2, maxCompletionTokens: 8192 });
+    expectRequest(h.requests[1], h.calls[1], { deployment, temperature: 0.2, maxCompletionTokens: 16384 });
+  });
+
+  it.each([
+    { deployment: '', extractionDeployment: '', expected: luna },
+    { deployment: 'gpt-4o', extractionDeployment: '', expected: 'gpt-4o' },
+    { deployment: 'gpt-4o', extractionDeployment: luna, expected: luna },
+    { deployment: luna, extractionDeployment: 'gpt-4.1', expected: 'gpt-4.1' },
+  ])('resolves the extraction deployment: %j', async ({ deployment, extractionDeployment, expected }) => {
+    const h = harness({
+      configured: true, deployment, extractionDeployment,
+      responses: [JSON.stringify(program()), JSON.stringify(program())],
+    });
+    expect((await h.routes.extractProgram(request(extractionInput))).status ?? 200).toBe(200);
+    expect(h.calls).toHaveLength(2);
+    expectRequest(h.requests[0], h.calls[0], { deployment: expected, temperature: 0.2, maxCompletionTokens: 8192 });
+  });
+
+  it('builds every chat-completions body through the shared helper', () => {
+    const root = path.resolve('api', 'src');
+    const sources = readdirSync(root, { recursive: true }).map(String).filter(file => file.endsWith('.ts'))
+      .map(file => ({ file: file.replaceAll('\\', '/'), text: readFileSync(path.join(root, file), 'utf8') }));
+    const callers = sources.filter(source => source.text.includes('/chat/completions'));
+    expect(callers.map(source => source.file)).toEqual(
+      expect.arrayContaining(['functions/workouts.ts', 'services/extraction.ts']),
+    );
+    for (const source of callers) expect(source.text).toContain('buildChatBody(');
+    for (const source of sources.filter(item => item.file !== 'services/chat-request.ts')) {
+      expect(source.text, source.file).not.toMatch(/\bmax_tokens\b|\bmax_completion_tokens\b|\breasoning_effort\b/);
+    }
+  });
+
+  it.each(['.env.example', path.join('api', 'local.settings.json.example')])(
+    '%s does not default to a retiring model',
+    file => {
+      expect(readFileSync(path.resolve(file), 'utf8')).not.toMatch(/gpt-4o|gpt-4\.1|o4-mini|o3-mini/i);
+    },
+  );
 });
 
 describe('exercise renderer', () => {
