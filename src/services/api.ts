@@ -9,18 +9,75 @@ const BASE = '/api';
 
 type SaveWorkoutLogPayload = Omit<WorkoutLog, 'id' | 'userId'>;
 
+export type ApiErrorKind =
+  | 'network'
+  | 'unauthorized'
+  | 'forbidden'
+  | 'not-found'
+  | 'server'
+  | 'http'
+  | 'invalid-response';
+
+export class ApiError extends Error {
+  readonly kind: ApiErrorKind;
+  readonly status: number | null;
+
+  constructor(
+    message: string,
+    kind: ApiErrorKind,
+    status: number | null = null,
+  ) {
+    super(message);
+    this.name = 'ApiError';
+    this.kind = kind;
+    this.status = status;
+  }
+}
+
+function getHttpErrorKind(status: number): ApiErrorKind {
+  if (status === 401) return 'unauthorized';
+  if (status === 403) return 'forbidden';
+  if (status === 404) return 'not-found';
+  if (status >= 500) return 'server';
+  return 'http';
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    });
+  } catch (error) {
+    throw new ApiError(
+      error instanceof Error ? error.message : 'Network request failed',
+      'network',
+    );
+  }
+
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `API error ${res.status}`);
+    const body: unknown = await res.json().catch(() => ({}));
+    const message = typeof body === 'object' && body !== null && 'error' in body
+      && typeof body.error === 'string' && body.error.length > 0
+      ? body.error
+      : `API error ${res.status}`;
+    throw new ApiError(message, getHttpErrorKind(res.status), res.status);
   }
   // 204 has no body, and res.json() on an empty body throws.
   if (res.status === 204) return undefined as T;
-  return res.json();
+  try {
+    return await res.json();
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new ApiError('Invalid JSON response', 'invalid-response', res.status);
+    }
+    throw new ApiError(
+      error instanceof Error ? error.message : 'Network request failed',
+      'network',
+      res.status,
+    );
+  }
 }
 
 // ===== User =====
