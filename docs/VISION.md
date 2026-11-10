@@ -197,7 +197,7 @@ Program sharing, community ratings, freemium paywall. Test whether the marketpla
 | Backend | Azure Functions (Node.js) | Same + AI extraction pipeline |
 | Database | Azure Table Storage | Azure Cosmos DB (scale for multi-user) |
 | Auth | Google OAuth via SWA | Same |
-| AI | Manual prompts (Phase 1) | Azure OpenAI GPT-4o for extraction + coaching |
+| AI | Manual prompts (Phase 1) | Azure OpenAI (gpt-6-luna) for extraction + coaching |
 | Hosting | Azure Static Web Apps | Same |
 | Storage | — | Azure Blob Storage (book uploads) |
 

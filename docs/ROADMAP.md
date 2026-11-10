@@ -118,7 +118,7 @@ Apply the "Strava meets Apple Fitness" aesthetic from the vision. Current UI is 
 | Task | Files | Effort |
 |------|-------|--------|
 | PDF text extraction (pdf-parse or similar) | `api/src/services/extractor.ts` | M |
-| Azure OpenAI GPT-4o integration for program extraction | `api/src/services/ai.ts` | L |
+| Azure OpenAI integration for program extraction (gpt-6-luna) | `api/src/services/ai.ts` | L |
 | Extraction prompt engineering — exercises, levels, progression rules, technique, periodization | Prompt templates | L |
 | Structured output validation (extracted program → Program type) | `api/src/services/validator.ts` | M |
 | Extraction status tracking (processing → ready → failed) | `types/`, API | M |
@@ -284,3 +284,4 @@ Apply the "Strava meets Apple Fitness" aesthetic from the vision. Current UI is 
 | Azure OpenAI for extraction | Already in NauroLabs subscription, GPT-4o handles book parsing well | 2026-03-30 |
 | PWA, no native app | Vision says mobile-first web — native wrapper only if traction justifies | 2026-03-30 |
 | No social features in MVP | Vision says solo first, community programs in Phase 5 | 2026-03-30 |
+| Extraction and coaching on gpt-6-luna | gpt-4o, gpt-4o-mini and gpt-4.1 retire on 2027-04-14; one request-body helper (`api/src/services/chat-request.ts`) keeps the body valid for old and new deployment names | 2026-11-09 |

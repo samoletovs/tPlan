@@ -5,7 +5,7 @@
 ## Current State (What Exists)
 
 ### Backend (Ready)
-- **`api/src/services/extraction.ts`** — Full AI extraction service using Azure OpenAI GPT-4o. Sends book text + structured prompt, receives JSON program. Includes validation + confidence scoring. **Production-ready.**
+- **`api/src/services/extraction.ts`** — Full AI extraction service using an Azure OpenAI chat deployment (gpt-6-luna). Sends book text + structured prompt, receives JSON program. Includes validation + confidence scoring. **Production-ready.**
 - **`api/src/services/pdf-parser.ts`** — PDF text extraction using `pdf-parse` with ESM/CJS interop fix. **Production-ready.**
 - **`api/src/functions/program-management.ts`** — POST `/api/programs/extract` endpoint. Accepts `{ text, fileName }`, calls extraction service, returns structured program.
 
@@ -124,7 +124,7 @@ Phase 3 is done when:
 | Resource | Monthly Cost |
 |----------|-------------|
 | Azure Blob Storage (Standard_LRS) | ~$0.02 (< 1GB of books) |
-| Azure OpenAI GPT-4o (extraction) | ~$0.50 per book extraction (8K output tokens) |
+| Azure OpenAI chat deployment (extraction) | ~$0.50 per book extraction (8K output tokens; estimate predates the move to gpt-6-luna and has not been re-priced) |
 | Total Phase 3 infra | < $1/month for personal use |
 
 ## Timeline Recommendation

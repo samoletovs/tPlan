@@ -1,11 +1,12 @@
 /**
  * AI-powered training program extraction from book text.
- * Uses Azure OpenAI GPT-4o in a two-pass approach:
+ * Uses an Azure OpenAI chat deployment (gpt-6-luna unless configured otherwise) in a two-pass approach:
  *   Pass 1 — compact inventory: names, sets, reps, type, muscle groups (fits in ~2K tokens)
  *   Pass 2 — enrich batches: levels, techniques, tempos, scheduling (batched to fit 16K output)
  * This ensures books with 40-50+ exercises are fully extracted.
  */
 
+import { buildChatBody, LUNA_DEPLOYMENT } from './chat-request.js';
 import { validateProgramSchedule } from './program-schedule.js';
 
 // ── Pass 1: lightweight inventory ──────────────────────────────────────────
@@ -123,22 +124,22 @@ async function callAI(
   deployment: string,
   systemPrompt: string,
   userMessage: string,
-  maxTokens: number,
+  maxCompletionTokens: number,
 ): Promise<{ content: string; truncated: boolean }> {
   const res = await fetch(
     `${endpoint}/openai/deployments/${deployment}/chat/completions?api-version=2024-02-01`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'api-key': key },
-      body: JSON.stringify({
+      body: JSON.stringify(buildChatBody({
+        deployment,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
         temperature: 0.2,
-        max_tokens: maxTokens,
-        response_format: { type: 'json_object' },
-      }),
+        maxCompletionTokens,
+      })),
     },
   );
 
@@ -162,9 +163,9 @@ export async function extractProgram(
 ): Promise<{ program: any; confidence: number; warnings: string[] }> {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
   const key = process.env.AZURE_OPENAI_KEY;
-  // Use gpt-4o for extraction (complex task), fall back to general deployment
+  // A dedicated extraction deployment wins, then the general deployment, then gpt-6-luna
   const deployment = process.env.AZURE_OPENAI_EXTRACTION_DEPLOYMENT
-    || process.env.AZURE_OPENAI_DEPLOYMENT || 'gpt-4o';
+    || process.env.AZURE_OPENAI_DEPLOYMENT || LUNA_DEPLOYMENT;
 
   if (!endpoint || !key) {
     throw new Error('Azure OpenAI not configured. Set AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY.');

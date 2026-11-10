@@ -1,8 +1,14 @@
 # tPlan — AI Training Coach
 
 Feedback triage uses `gpt-6-luna` on the existing personal-agents Azure account,
-with reasoning disabled and a 300-token output ceiling. The training engine and
-application coaching models are not changed by this retirement migration.
+with reasoning disabled and a 300-token output ceiling. The app's own Azure OpenAI
+calls (workout coaching and program extraction) are meant to run on `gpt-6-luna` too:
+the deployment comes from the `AZURE_OPENAI_DEPLOYMENT` and
+`AZURE_OPENAI_EXTRACTION_DEPLOYMENT` app settings, and extraction falls back to
+`gpt-6-luna`. Both calls build their request body in `api/src/services/chat-request.ts`,
+which always sends `max_completion_tokens` and adds `reasoning_effort: "none"` only when
+the resolved deployment is exactly `gpt-6-luna`, so the body stays valid for an older
+deployment name. Name the deployment exactly `gpt-6-luna`.
 
 ## Overview
 Research project exploring how AI agents can interpret training methodology books and generate personalized, progressive workout programs. Phase 1 (offline HTML workouts) is complete; Phase 2 is a React web app with Azure backend.

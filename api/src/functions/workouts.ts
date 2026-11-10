@@ -4,6 +4,7 @@ import { LANGUAGE_NAMES, resolveLocale, t, type Locale } from '../i18n.js';
 import { recallForPrompt, fenceUserText } from '../memory/index.js';
 import { readProgramSchedule, ProgramScheduleError } from '../services/program-schedule.js';
 import { parseCoachingResponse, InvalidCoachingError, type CoachingStep } from '../services/coaching.js';
+import { buildChatBody } from '../services/chat-request.js';
 const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const STREAK_GAP_TOLERANCE_DAYS = 1.5;
@@ -532,12 +533,12 @@ Steps: ${JSON.stringify(workout.steps.map((step, index) => ({ index, type: step.
     method: 'POST',
     signal: AbortSignal.timeout(15_000),
     headers: { 'Content-Type': 'application/json', 'api-key': key },
-    body: JSON.stringify({
+    body: JSON.stringify(buildChatBody({
+      deployment,
       messages: [{ role: 'system', content: prompt }, { role: 'user', content: context }],
       temperature: 0.7,
-      max_tokens: 500,
-      response_format: { type: 'json_object' },
-    }),
+      maxCompletionTokens: 500,
+    })),
   });
 
   if (!res.ok) throw new Error('Coaching provider unavailable');
