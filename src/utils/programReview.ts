@@ -1,8 +1,12 @@
-import type { ExtractionResult, ProgramExercise } from '../types';
+import type { ExtractionResult, ProgramExercise, ProgressionRules } from '../types';
 
 export function prepareReviewedProgram({
-  program, exercises,
-}: { program: ExtractionResult['program']; exercises: ProgramExercise[] }): ExtractionResult['program'] {
+  program, exercises, progressionRules = program.progressionRules,
+}: {
+  program: ExtractionResult['program'];
+  exercises: ProgramExercise[];
+  progressionRules?: ProgressionRules;
+}): ExtractionResult['program'] {
   const ids = new Set(exercises.map(exercise => exercise.id));
   const trainingDays = Object.fromEntries(
     Object.entries(program.trainingDays ?? {})
@@ -15,6 +19,7 @@ export function prepareReviewedProgram({
   );
   return {
     ...program,
+    progressionRules,
     exercises: exercises.map(exercise => ({
       ...exercise,
       // Only prune slots for deleted days when this extraction actually has day mappings.
@@ -26,4 +31,12 @@ export function prepareReviewedProgram({
     trainingDays,
     defaultSchedule,
   };
+}
+
+export function isValidProgressionRules(rules: ProgressionRules): boolean {
+  return Number.isSafeInteger(rules.repsIncrement)
+    && rules.repsIncrement > 0
+    && Number.isSafeInteger(rules.consecutiveEasyThreshold)
+    && rules.consecutiveEasyThreshold > 0
+    && typeof rules.levelUpAtMaxReps === 'boolean';
 }

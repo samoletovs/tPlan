@@ -17,7 +17,7 @@ import lv from '../src/i18n/lv.json';
 import es from '../src/i18n/es.json';
 import { validateProgramSchedule } from '../api/src/services/program-schedule';
 import { CC_PROGRAM } from '../api/src/data/cc-program';
-import { prepareReviewedProgram } from '../src/utils/programReview';
+import { isValidProgressionRules, prepareReviewedProgram } from '../src/utils/programReview';
 import type { ExerciseStep } from '../src/types';
 
 interface Request {
@@ -45,6 +45,11 @@ function program() {
       slots: ['day-a'],
     }],
     levels: [],
+    progressionRules: {
+      repsIncrement: 2,
+      consecutiveEasyThreshold: 2,
+      levelUpAtMaxReps: true,
+    },
     trainingDays: { 'day-a': { exercises: ['demo'], label: 'A' } },
     defaultSchedule: { mon: 'day-a' },
   };
@@ -394,6 +399,25 @@ describe('saved extraction contract', () => {
     expect(reviewed.trainingDays).toEqual(original.trainingDays);
     expect(reviewed.defaultSchedule).toEqual({ mon: 'day-a', tue: null });
     expect((await harness().save(reviewed)).status).toBe(201);
+  });
+
+  it('preserves reviewed progression rules and rejects invalid numeric values', () => {
+    const progressionRules = {
+      repsIncrement: 3,
+      consecutiveEasyThreshold: 4,
+      levelUpAtMaxReps: false,
+    };
+    const original = program();
+    const reviewed = prepareReviewedProgram({
+      program: original,
+      exercises: original.exercises,
+      progressionRules,
+    });
+
+    expect(reviewed.progressionRules).toEqual(progressionRules);
+    expect(isValidProgressionRules(progressionRules)).toBe(true);
+    expect(isValidProgressionRules({ ...progressionRules, repsIncrement: 0 })).toBe(false);
+    expect(isValidProgressionRules({ ...progressionRules, consecutiveEasyThreshold: -1 })).toBe(false);
   });
 
   it('rejects an empty generated session even for a valid legacy slot restriction', async () => {
