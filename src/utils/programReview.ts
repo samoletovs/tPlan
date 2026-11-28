@@ -1,7 +1,7 @@
 import type { ExtractionResult, ProgramExercise, ProgressionRules } from '../types';
 
 export function prepareReviewedProgram({
-  program, exercises, progressionRules = program.progressionRules,
+  program, exercises, progressionRules,
 }: {
   program: ExtractionResult['program'];
   exercises: ProgramExercise[];
@@ -19,7 +19,7 @@ export function prepareReviewedProgram({
   );
   return {
     ...program,
-    progressionRules,
+    ...(progressionRules ? { progressionRules } : {}),
     exercises: exercises.map(exercise => ({
       ...exercise,
       // Only prune slots for deleted days when this extraction actually has day mappings.

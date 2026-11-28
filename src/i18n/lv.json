@@ -208,6 +208,7 @@
     "exercises": "Izvilkti {{count}} vingrinājumi",
     "levels": "līmeņi",
     "progressionRules": "Progresa noteikumi",
+    "progressionRulesMissing": "Progresa noteikumi netika izgūti.",
     "progressionDesc": "+{{increment}} atkārtojumi pēc {{threshold}} secīgām vieglām sesijām.",
     "repsIncrement": "Atkārtojumi vienā palielinājumā",
     "consecutiveEasyThreshold": "Vieglās sesijas līdz palielinājumam",

@@ -93,7 +93,7 @@ export const extractProgramFromText = (text: string, fileName: string) =>
     method: 'POST',
     body: JSON.stringify({ text, fileName }),
   });
-export const createProgram = (program: Omit<Program, 'id' | 'createdAt'>) =>
+export const createProgram = (program: ExtractionResult['program']) =>
   request<Program>('/programs', { method: 'POST', body: JSON.stringify(program) });
 export const deleteProgram = (id: string) =>
   request<{ deleted: boolean }>(`/programs/${id}`, { method: 'DELETE' });

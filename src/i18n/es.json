@@ -208,6 +208,7 @@
     "exercises": "{{count}} ejercicios extraídos",
     "levels": "niveles",
     "progressionRules": "Reglas de progresión",
+    "progressionRulesMissing": "No se extrajeron reglas de progresión.",
     "progressionDesc": "+{{increment}} repeticiones después de {{threshold}} sesiones fáciles consecutivas.",
     "repsIncrement": "Repeticiones por incremento",
     "consecutiveEasyThreshold": "Sesiones fáciles para incrementar",

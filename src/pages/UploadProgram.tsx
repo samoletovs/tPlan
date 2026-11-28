@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { extractProgramFromText, createProgram } from '../services/api';
 import { isValidProgressionRules, prepareReviewedProgram } from '../utils/programReview';
-import type { Program, ProgramExercise, ProgramLevel, ProgressionRules, ExtractionResult } from '../types';
+import type { ProgramExercise, ProgramLevel, ProgressionRules, ExtractionResult } from '../types';
 
 type Step = 'upload' | 'extracting' | 'review' | 'saving';
 type ProgressionRulesDraft = Omit<ProgressionRules, 'repsIncrement' | 'consecutiveEasyThreshold'> & {
@@ -24,7 +24,7 @@ export default function UploadProgram() {
   const [fileName, setFileName] = useState('');
 
   // Extraction result
-  const [program, setProgram] = useState<Omit<Program, 'id' | 'createdAt'> | null>(null);
+  const [program, setProgram] = useState<ExtractionResult['program'] | null>(null);
   const [confidence, setConfidence] = useState(0);
   const [warnings, setWarnings] = useState<string[]>([]);
 
@@ -45,7 +45,7 @@ export default function UploadProgram() {
     consecutiveEasyThreshold: Number(editProgressionRules.consecutiveEasyThreshold),
     levelUpAtMaxReps: editProgressionRules.levelUpAtMaxReps,
   };
-  const progressionRulesValid = isValidProgressionRules(progressionRules);
+  const progressionRulesValid = !program?.progressionRules || isValidProgressionRules(progressionRules);
 
   async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -135,7 +135,11 @@ export default function UploadProgram() {
     setError(null);
     try {
       const toSave = {
-        ...prepareReviewedProgram({ program, exercises: editExercises, progressionRules }),
+        ...prepareReviewedProgram({
+          program,
+          exercises: editExercises,
+          ...(program.progressionRules ? { progressionRules } : {}),
+        }),
         name: editName,
         description: editDesc,
         type: editType,
@@ -386,62 +390,68 @@ export default function UploadProgram() {
         {/* Progression Rules */}
         <div className="card">
           <label className="label">{t('upload.progressionRules')}</label>
-          {progressionRulesValid && (
-            <div className="text-sm text-body">
-              {t('upload.progressionDesc', {
-                increment: progressionRules.repsIncrement,
-                threshold: progressionRules.consecutiveEasyThreshold,
-              })}
-            </div>
-          )}
-          <div className="flex gap-sm mt-sm">
-            <label style={{ flex: 1, minWidth: 0 }}>
-              <span className="label">{t('upload.repsIncrement')}</span>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                step={1}
-                value={editProgressionRules.repsIncrement}
-                onChange={e => setEditProgressionRules(prev => ({ ...prev, repsIncrement: e.target.value }))}
-                aria-label={t('upload.repsIncrement')}
-                aria-invalid={!progressionRulesValid}
-              />
-            </label>
-            <label style={{ flex: 1, minWidth: 0 }}>
-              <span className="label">{t('upload.consecutiveEasyThreshold')}</span>
-              <input
-                className="input"
-                type="number"
-                min={1}
-                step={1}
-                value={editProgressionRules.consecutiveEasyThreshold}
-                onChange={e => setEditProgressionRules(prev => ({ ...prev, consecutiveEasyThreshold: e.target.value }))}
-                aria-label={t('upload.consecutiveEasyThreshold')}
-                aria-invalid={!progressionRulesValid}
-              />
-            </label>
-          </div>
-          <div className="pref-row mt-md">
-            <span className="pref-label">{t('upload.levelUpAtMaxReps')}</span>
-            <button
-              className={`toggle-track${editProgressionRules.levelUpAtMaxReps ? ' on' : ''}`}
-              onClick={() => setEditProgressionRules(prev => ({
-                ...prev,
-                levelUpAtMaxReps: !prev.levelUpAtMaxReps,
-              }))}
-              disabled={step === 'saving'}
-              role="switch"
-              aria-checked={editProgressionRules.levelUpAtMaxReps}
-              aria-label={t('upload.levelUpAtMaxReps')}
-            >
-              <span className="toggle-thumb" />
-            </button>
-          </div>
-          {!progressionRulesValid && (
-            <div className="error-toast mt-sm" role="alert">
-              {t('upload.invalidProgressionRules')}
-            </div>
+          {program.progressionRules ? (
+            <>
+              {progressionRulesValid && (
+                <div className="text-sm text-body">
+                  {t('upload.progressionDesc', {
+                    increment: progressionRules.repsIncrement,
+                    threshold: progressionRules.consecutiveEasyThreshold,
+                  })}
+                </div>
+              )}
+              <div className="flex gap-sm mt-sm">
+                <label style={{ flex: 1, minWidth: 0 }}>
+                  <span className="label">{t('upload.repsIncrement')}</span>
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={editProgressionRules.repsIncrement}
+                    onChange={e => setEditProgressionRules(prev => ({ ...prev, repsIncrement: e.target.value }))}
+                    aria-label={t('upload.repsIncrement')}
+                    aria-invalid={!progressionRulesValid}
+                  />
+                </label>
+                <label style={{ flex: 1, minWidth: 0 }}>
+                  <span className="label">{t('upload.consecutiveEasyThreshold')}</span>
+                  <input
+                    className="input"
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={editProgressionRules.consecutiveEasyThreshold}
+                    onChange={e => setEditProgressionRules(prev => ({ ...prev, consecutiveEasyThreshold: e.target.value }))}
+                    aria-label={t('upload.consecutiveEasyThreshold')}
+                    aria-invalid={!progressionRulesValid}
+                  />
+                </label>
+              </div>
+              <div className="pref-row mt-md">
+                <span className="pref-label">{t('upload.levelUpAtMaxReps')}</span>
+                <button
+                  className={`toggle-track${editProgressionRules.levelUpAtMaxReps ? ' on' : ''}`}
+                  onClick={() => setEditProgressionRules(prev => ({
+                    ...prev,
+                    levelUpAtMaxReps: !prev.levelUpAtMaxReps,
+                  }))}
+                  disabled={step === 'saving'}
+                  role="switch"
+                  aria-checked={editProgressionRules.levelUpAtMaxReps}
+                  aria-label={t('upload.levelUpAtMaxReps')}
+                >
+                  <span className="toggle-thumb" />
+                </button>
+              </div>
+              {!progressionRulesValid && (
+                <div className="error-toast mt-sm" role="alert">
+                  {t('upload.invalidProgressionRules')}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-sm text-body">{t('upload.progressionRulesMissing')}</div>
           )}
         </div>
 

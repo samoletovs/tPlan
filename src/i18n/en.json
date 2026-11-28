@@ -208,6 +208,7 @@
     "exercises": "{{count}} exercises extracted",
     "levels": "levels",
     "progressionRules": "Progression Rules",
+    "progressionRulesMissing": "No progression rules were extracted.",
     "progressionDesc": "+{{increment}} reps after {{threshold}} consecutive easy sessions.",
     "repsIncrement": "Reps per increase",
     "consecutiveEasyThreshold": "Easy sessions to increase",

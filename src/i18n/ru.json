@@ -208,6 +208,7 @@
     "exercises": "{{count}} упражнений извлечено",
     "levels": "уровней",
     "progressionRules": "Правила прогрессии",
+    "progressionRulesMissing": "Правила прогрессии не извлечены.",
     "progressionDesc": "+{{increment}} повторов после {{threshold}} лёгких тренировок подряд.",
     "repsIncrement": "Повторений за увеличение",
     "consecutiveEasyThreshold": "Лёгких тренировок для увеличения",
