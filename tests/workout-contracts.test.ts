@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import ts from 'typescript';
@@ -17,7 +17,7 @@ import lv from '../src/i18n/lv.json';
 import es from '../src/i18n/es.json';
 import { validateProgramSchedule } from '../api/src/services/program-schedule';
 import { CC_PROGRAM } from '../api/src/data/cc-program';
-import { prepareReviewedProgram } from '../src/utils/programReview';
+import { isValidProgressionRules, prepareReviewedProgram } from '../src/utils/programReview';
 import type { ExerciseStep } from '../src/types';
 
 interface Request {
@@ -45,6 +45,11 @@ function program() {
       slots: ['day-a'],
     }],
     levels: [],
+    progressionRules: {
+      repsIncrement: 2,
+      consecutiveEasyThreshold: 2,
+      levelUpAtMaxReps: true,
+    },
     trainingDays: { 'day-a': { exercises: ['demo'], label: 'A' } },
     defaultSchedule: { mon: 'day-a' },
   };
@@ -184,11 +189,15 @@ function renderPage({
           state[index] = typeof next === 'function' ? next(state[index]) : next;
         }];
       },
+      useRef: () => ({ current: null }),
       useEffect() {},
     },
     'react/jsx-runtime': jsxRuntime,
     'react-i18next': { useTranslation: () => ({ t: translate }) },
-    'react-router-dom': { Link: ({ to, children, ...props }: Row) => createElement('a', { href: to, ...props }, children as ReactNode) },
+    'react-router-dom': {
+      Link: ({ to, children, ...props }: Row) => createElement('a', { href: to, ...props }, children as ReactNode),
+      useNavigate: () => api.navigate ?? (() => {}),
+    },
     '../services/api': api,
     '../context/AuthContext': { useAuth: () => ({ user: null }) },
   };
@@ -203,7 +212,11 @@ function renderPage({
       exports,
       require(name: string) {
         if (Object.hasOwn(dependencies, name)) return dependencies[name];
-        if (name.startsWith('.')) return load(path.resolve(path.dirname(filename), `${name}.tsx`));
+        if (name.startsWith('.')) {
+          const modulePath = path.resolve(path.dirname(filename), name);
+          const tsxPath = `${modulePath}.tsx`;
+          return load(existsSync(tsxPath) ? tsxPath : `${modulePath}.ts`);
+        }
         throw new Error(`Unmocked UI dependency: ${name}`);
       },
     }, { filename });
@@ -222,6 +235,13 @@ function buttons(node: ReactNode): ReactElement<Row>[] {
   if (!isValidElement<Row>(node)) return [];
   const found = node.type === 'button' ? [node] : [];
   return [...found, ...buttons(node.props.children as ReactNode)];
+}
+
+function elements(node: ReactNode, type: string): ReactElement<Row>[] {
+  if (Array.isArray(node)) return node.flatMap(child => elements(child, type));
+  if (!isValidElement<Row>(node)) return [];
+  const found = node.type === type ? [node] : [];
+  return [...found, ...elements(node.props.children as ReactNode, type)];
 }
 
 function click(button: ReactElement<Row>) {
@@ -394,6 +414,151 @@ describe('saved extraction contract', () => {
     expect(reviewed.trainingDays).toEqual(original.trainingDays);
     expect(reviewed.defaultSchedule).toEqual({ mon: 'day-a', tue: null });
     expect((await harness().save(reviewed)).status).toBe(201);
+  });
+
+  it('preserves reviewed progression rules and rejects invalid numeric values', () => {
+    const progressionRules = {
+      repsIncrement: 3,
+      consecutiveEasyThreshold: 4,
+      levelUpAtMaxReps: false,
+    };
+    const original = program();
+    const reviewed = prepareReviewedProgram({
+      program: original,
+      exercises: original.exercises,
+      progressionRules,
+    });
+
+    expect(reviewed.progressionRules).toEqual(progressionRules);
+    expect(isValidProgressionRules(progressionRules)).toBe(true);
+    expect(isValidProgressionRules({ ...progressionRules, repsIncrement: 0 })).toBe(false);
+    expect(isValidProgressionRules({ ...progressionRules, consecutiveEasyThreshold: -1 })).toBe(false);
+    expect(isValidProgressionRules({ ...progressionRules, repsIncrement: 1.5 })).toBe(false);
+    expect(isValidProgressionRules({ ...progressionRules, consecutiveEasyThreshold: Number.NaN })).toBe(false);
+  });
+
+  it('keeps omitted extracted rules out of the review controls and save payload', async () => {
+    const { progressionRules: _rules, ...legacy } = program();
+    const reviewed = prepareReviewedProgram({
+      program: legacy,
+      exercises: legacy.exercises,
+    });
+
+    expect(Object.hasOwn(reviewed, 'progressionRules')).toBe(false);
+
+    const h = harness();
+    const i18n = createInstance();
+    await i18n.init({ lng: 'en', resources: {
+      en: { translation: en },
+    } });
+    const createProgram = vi.fn(async (value: unknown) => h.save(value));
+    const review = renderPage({
+      file: 'UploadProgram',
+      initialState: [
+        'review', null, 'legacy.txt', legacy, 90, [], legacy.name,
+        legacy.description, legacy.type, legacy.exercises,
+        { repsIncrement: '2', consecutiveEasyThreshold: '2', levelUpAtMaxReps: true }, null,
+      ],
+      translate: (key, options) => i18n.t(key, options),
+      api: { createProgram, extractProgramFromText: vi.fn(), navigate: vi.fn() },
+    });
+
+    expect(review.html()).toContain(i18n.t('upload.progressionRulesMissing'));
+    expect(elements(review.tree(), 'input').some(input =>
+      input.props['aria-label'] === i18n.t('upload.repsIncrement')
+      || input.props['aria-label'] === i18n.t('upload.consecutiveEasyThreshold'),
+    )).toBe(false);
+    await click(buttons(review.tree())
+      .find(button => button.props.children === i18n.t('upload.saveProgram'))!);
+
+    expect(createProgram).toHaveBeenCalledOnce();
+    expect(Object.hasOwn(createProgram.mock.calls[0][0], 'progressionRules')).toBe(false);
+    expect([...h.saved.values()]).toHaveLength(1);
+  });
+
+  it('saves edited progression rules from review through the create-program payload', async () => {
+    const h = harness();
+    const original = program();
+    const i18n = createInstance();
+    await i18n.init({ lng: 'en', resources: {
+      en: { translation: en },
+    } });
+    const createProgram = vi.fn(async (value: unknown) => h.save(value));
+    const review = renderPage({
+      file: 'UploadProgram',
+      initialState: [
+        'review', null, 'methodology.txt', original, 90, [], original.name,
+        original.description, original.type, original.exercises,
+        { repsIncrement: '2', consecutiveEasyThreshold: '2', levelUpAtMaxReps: true }, null,
+      ],
+      translate: (key, options) => i18n.t(key, options),
+      api: { createProgram, extractProgramFromText: vi.fn(), navigate: vi.fn() },
+    });
+
+    const increment = elements(review.tree(), 'input')
+      .find(input => input.props['aria-label'] === i18n.t('upload.repsIncrement'));
+    const threshold = elements(review.tree(), 'input')
+      .find(input => input.props['aria-label'] === i18n.t('upload.consecutiveEasyThreshold'));
+    const levelUp = buttons(review.tree())
+      .find(button => button.props['aria-label'] === i18n.t('upload.levelUpAtMaxReps'));
+    expect(increment).toBeDefined();
+    expect(threshold).toBeDefined();
+    expect(levelUp).toBeDefined();
+
+    increment!.props.onChange({ target: { value: '3' } });
+    threshold!.props.onChange({ target: { value: '4' } });
+    click(levelUp!);
+    const save = buttons(review.tree())
+      .find(button => button.props.children === i18n.t('upload.saveProgram'));
+    await click(save!);
+
+    expect(createProgram).toHaveBeenCalledOnce();
+    expect(createProgram.mock.calls[0][0]).toMatchObject({
+      progressionRules: {
+        repsIncrement: 3,
+        consecutiveEasyThreshold: 4,
+        levelUpAtMaxReps: false,
+      },
+    });
+    expect(JSON.parse(String([...h.saved.values()][0].progressionRules))).toEqual({
+      repsIncrement: 3,
+      consecutiveEasyThreshold: 4,
+      levelUpAtMaxReps: false,
+    });
+  });
+
+  it.each([
+    ['empty', ''],
+    ['zero', '0'],
+    ['negative', '-1'],
+    ['decimal', '1.5'],
+  ])('shows validation and blocks saving a %s progression value', async (_label, invalidValue) => {
+    const original = program();
+    const i18n = createInstance();
+    await i18n.init({ lng: 'en', resources: {
+      en: { translation: en },
+    } });
+    const createProgram = vi.fn();
+    const review = renderPage({
+      file: 'UploadProgram',
+      initialState: [
+        'review', null, 'methodology.txt', original, 90, [], original.name,
+        original.description, original.type, original.exercises,
+        { repsIncrement: '2', consecutiveEasyThreshold: '2', levelUpAtMaxReps: true }, null,
+      ],
+      translate: (key, options) => i18n.t(key, options),
+      api: { createProgram, extractProgramFromText: vi.fn(), navigate: vi.fn() },
+    });
+    const input = elements(review.tree(), 'input')
+      .find(element => element.props['aria-label'] === i18n.t('upload.repsIncrement'));
+    input!.props.onChange({ target: { value: invalidValue } });
+
+    const tree = review.tree();
+    const save = buttons(tree).find(button => button.props.children === i18n.t('upload.saveProgram'));
+    expect(review.html()).toContain(i18n.t('upload.invalidProgressionRules'));
+    expect(save?.props.disabled).toBe(true);
+    await click(save!);
+    expect(createProgram).not.toHaveBeenCalled();
   });
 
   it('rejects an empty generated session even for a valid legacy slot restriction', async () => {

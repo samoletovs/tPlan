@@ -256,7 +256,9 @@ export interface ExtractionRequest {
 }
 
 export interface ExtractionResult {
-  program: Omit<Program, 'id' | 'createdAt'>;
+  program: Omit<Program, 'id' | 'createdAt' | 'progressionRules'> & {
+    progressionRules?: ProgressionRules;
+  };
   confidence: number;
   warnings: string[];
 }
